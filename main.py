@@ -109,7 +109,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = self.rect.y + self.movey
 
 class Ghost(pygame.sprite.Sprite):
-    def __init__(self, yOffset):
+    def __init__(self, yOffset, scatterTargetRect):
         pygame.sprite.Sprite.__init__(self)
 
         self.rightImage = get_image(spritesheet, 28.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
@@ -122,6 +122,8 @@ class Ghost(pygame.sprite.Sprite):
         self.movex = 0
         self.movey = 0
         self.targetRect = player.rect
+        self.scatterTargetRect = scatterTargetRect
+        self.movementMode = "Chase"
 
         self.tileNumber = 0
         self.currentDirection = 3
@@ -230,6 +232,8 @@ class Ghost(pygame.sprite.Sprite):
     def pickDirection(self, dir, priority):
         for i in priority:
             if i in dir:
+                if (i + self.currentDirection) % 2 == 0 and i is not self.currentDirection and (gameMode == "Scatter" or self.movementMode == "Scatter"):
+                    continue
                 self.moveDirection(i)
                 return
         self.stop()
@@ -345,6 +349,42 @@ def getPinkGhostTarget(player):
 
     return pygame.Rect(x, y, 16, 16)
 
+def getBlueGhostTarget(player, redGhost):
+    playerX = player.rect.x
+    playerY = player.rect.y
+    playerDir = player.currentDirection
+    ghostX = redGhost.rect.x
+    ghostY = redGhost.rect.y
+
+    if playerDir == 0:
+        playerY -= 4 * SPRITE_PIXEL_SIZE
+    elif playerDir == 1:
+        playerX -= 4 * SPRITE_PIXEL_SIZE
+    elif playerDir == 2:
+        playerY += 4 * SPRITE_PIXEL_SIZE
+    else:
+        playerX += 4 * SPRITE_PIXEL_SIZE
+
+    x = ghostX + ((playerX - ghostX) * 2)
+    y = ghostY + ((playerY - ghostY) * 2)
+
+    return pygame.Rect(x, y, 16, 16)
+
+def getOrangeGhostTarget(player, orangeGhost):
+    playerX = player.rect.x
+    playerY = player.rect.y
+
+    ghostX = orangeGhost.rect.x
+    ghostY = orangeGhost.rect.y
+
+    if math.sqrt((abs(playerX - ghostX)^2) + (abs(playerY - ghostY)^2)) > 16:
+        orangeGhost.movementMode = "Chase"
+        return player.rect
+    else:
+        orangeGhost.movementMode = "Scatter"
+        return orangeGhost.scatterTargetRect
+
+
 '''
     SET UP
 '''
@@ -355,6 +395,7 @@ spritesheet = pygame.image.load('Arcade - Pac-Man - General Sprites.png').conver
 running = True
 
 clock = pygame.time.Clock()
+gameMode = "Scatter"
 
 # Create background
 screen.fill((50, 50, 50))
@@ -369,20 +410,20 @@ player_list.add(player)
 steps = 1
 
 # Create Ghosts
-redGhost = Ghost(0)
-redGhost.rect.x = (GRID_SPRITE_WIDTH - 3.25) * SPRITE_PIXEL_SIZE
-redGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+redGhost = Ghost(0, pygame.Rect(10.5*32, -0.5*32, 16, 16))
+redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
 
-pinkGhost = Ghost(1)
-pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 1.75) * SPRITE_PIXEL_SIZE
+pinkGhost = Ghost(1, pygame.Rect(2*32, -0.5*32, 16, 16))
+pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
 pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
 
-blueGhost = Ghost(2)
-blueGhost.rect.x = (GRID_SPRITE_WIDTH - 0.25) * SPRITE_PIXEL_SIZE
+blueGhost = Ghost(2, pygame.Rect(12.5*32, 25*32, 16, 16))
+blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
 blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
 
-orangeGhost = Ghost(3)
-orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1.25) * SPRITE_PIXEL_SIZE
+orangeGhost = Ghost(3, pygame.Rect(2*32, 25*32, 16, 16))
+orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
 orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
 
 ghost_list = pygame.sprite.Group()
@@ -534,6 +575,9 @@ for i in range(0, 438, 16):
         tile = Tile(i/32.0, j/32.0, 0.5, 0.5)
         grid.append(tile)
 
+timer = pygame.time.get_ticks()
+gamePhase = 1
+
 '''
     MAIN LOOP
 '''
@@ -549,8 +593,33 @@ while running:
     player.move(key)
     player.eat()
 
-    redGhost.move(player.rect)
-    pinkGhost.move(getPinkGhostTarget(player))
+    now = pygame.time.get_ticks()
+    if gameMode == "Chase":
+        if now - timer >= 20 * 1000 and gamePhase < 4:
+            print("Scatter")
+            gameMode = "Scatter"
+            gamePhase += 1
+            timer = now
+    else:
+        if now - timer >= 7 * 1000 and gamePhase <= 2:
+            print("Chase")
+            gameMode = "Chase"
+            timer = now
+        elif now - timer >= 5 * 1000:
+            print("Chase")
+            gameMode = "Chase"
+            timer = now
+
+    if gameMode == "Chase":
+        redGhost.move(player.rect)
+        pinkGhost.move(getPinkGhostTarget(player))
+        blueGhost.move(getBlueGhostTarget(player, redGhost))
+        orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
+    elif gameMode == "Scatter":
+        redGhost.move(redGhost.scatterTargetRect)
+        pinkGhost.move(pinkGhost.scatterTargetRect)
+        blueGhost.move(blueGhost.scatterTargetRect)
+        orangeGhost.move(orangeGhost.scatterTargetRect)
 
     screen.blit(map, (0, 0))
     if time.time() - animStartTime > 0.5:
@@ -562,6 +631,8 @@ while running:
     player.update()
     redGhost.update()
     pinkGhost.update()
+    blueGhost.update()
+    orangeGhost.update()
 
     # for tile in grid:
     #     tile.draw(screen)
