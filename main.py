@@ -20,14 +20,14 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
 
-        img_0 = get_image(spritesheet, 28.5, 0, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_1 = get_image(spritesheet, 29.5, 0, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_2 = get_image(spritesheet, 28.5, 1, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_3 = get_image(spritesheet, 29.5, 1, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_4 = get_image(spritesheet, 28.5, 2, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_5 = get_image(spritesheet, 29.5, 2, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_6 = get_image(spritesheet, 28.5, 3, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        img_7 = get_image(spritesheet, 29.5, 3, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        img_0 = get_image(spritesheet, 28.5+1.9, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_1 = get_image(spritesheet, 29.5+2.0, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_2 = get_image(spritesheet, 28.5+1.9, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_3 = get_image(spritesheet, 29.5+2.0, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_4 = get_image(spritesheet, 28.5+1.9, 2+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_5 = get_image(spritesheet, 29.5+2.0, 2+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_6 = get_image(spritesheet, 28.5+1.9, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_7 = get_image(spritesheet, 29.5+2.0, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
 
         self.rightImages = [img_0, img_1]
         self.leftImages = [img_2, img_3]
@@ -51,7 +51,6 @@ class Player(pygame.sprite.Sprite):
                 self.control(-steps, 0)
             else:
                 self.stop()
-            # print('left')
         elif key[pygame.K_RIGHT]:
             rect = pygame.Rect(self.rect.x + 1, self.rect.y, self.rect.width, self.rect.height)
             if rect.collidelist(walls) is -1:
@@ -59,7 +58,6 @@ class Player(pygame.sprite.Sprite):
                 self.control(steps, 0)
             else:
                 self.stop()
-            # print('right')
         elif key[pygame.K_UP]:
             rect = pygame.Rect(self.rect.x, self.rect.y - 1, self.rect.width, self.rect.height)
             if rect.collidelist(walls) is -1:
@@ -67,7 +65,6 @@ class Player(pygame.sprite.Sprite):
                 self.control(0, -steps)
             else:
                 self.stop()
-            # print('up')
         elif key[pygame.K_DOWN]:
             rect = pygame.Rect(self.rect.x, self.rect.y + 1, self.rect.width, self.rect.height)
             if rect.collidelist(walls) is -1:
@@ -75,7 +72,6 @@ class Player(pygame.sprite.Sprite):
                 self.control(0, steps)
             else:
                 self.stop()
-            # print('down')
         else:
             self.stop()
 
@@ -304,6 +300,12 @@ pellets = [
 
 animStartTime = time.time()
 
+grid = []
+for i in range(16, 422, 16):
+    for j in range(16, 470, 16):
+        block = Wall(i/32.0, j/32.0, 0.5, 0.5)
+        grid.append(block)
+
 '''
     MAIN LOOP
 '''
@@ -327,6 +329,9 @@ while running:
             player.image = player.images[0]
         animStartTime = time.time()
     player.update()
+
+    # for block in grid:
+    #     block.draw(screen)
 
     for dot in dots:
         dot.draw(screen)
