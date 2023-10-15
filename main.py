@@ -554,6 +554,7 @@ for i in range(22, 438, 16):
         dot = Dot(i, j)
         if dot.rect.collidelist(walls) is -1 and dot.rect.collidelist(noSpawns) is -1:
             dots.append(dot)
+totalDots = len(dots)
 
 pellet1 = Pellet(0.75, 1.75)
 pellet2 = Pellet(0.75, 11.75)
@@ -613,13 +614,17 @@ while running:
     if gameMode == "Chase":
         redGhost.move(player.rect)
         pinkGhost.move(getPinkGhostTarget(player))
-        blueGhost.move(getBlueGhostTarget(player, redGhost))
-        orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
+        if totalDots - len(dots) >= 30:
+            blueGhost.move(getBlueGhostTarget(player, redGhost))
+        if totalDots - len(dots) >= totalDots/3:
+            orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
     elif gameMode == "Scatter":
         redGhost.move(redGhost.scatterTargetRect)
         pinkGhost.move(pinkGhost.scatterTargetRect)
-        blueGhost.move(blueGhost.scatterTargetRect)
-        orangeGhost.move(orangeGhost.scatterTargetRect)
+        if totalDots - len(dots) >= 30:
+            blueGhost.move(blueGhost.scatterTargetRect)
+        if totalDots - len(dots) >= totalDots/3:
+            orangeGhost.move(orangeGhost.scatterTargetRect)
 
     screen.blit(map, (0, 0))
     if time.time() - animStartTime > 0.5:
