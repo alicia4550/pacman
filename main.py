@@ -3,6 +3,7 @@ import time
 import math
 
 pygame.init()
+font = pygame.font.Font("Retro Gaming.ttf", 26)
 
 '''
     CONSTANTS
@@ -46,6 +47,7 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.tileNumber = 0
         self.currentDirection = 3
+        self.lose = False
 
     def move(self, key):
         if key[pygame.K_LEFT]:
@@ -95,6 +97,11 @@ class Player(pygame.sprite.Sprite):
             pellets.pop(index)
             self.score += 50
             print(self.score)
+
+    def checkGhostCollision(self):
+        for ghost in ghost_list:
+            if self.rect.colliderect(ghost.rect):
+                self.lose = True
 
     def control(self, x, y):
         self.movex = x
@@ -398,7 +405,7 @@ clock = pygame.time.Clock()
 gameMode = "Scatter"
 
 # Create background
-screen.fill((50, 50, 50))
+screen.fill((0, 0, 0))
 map = get_image(spritesheet, 1.02, 0, SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH, SPRITE_PIXEL_SIZE*GRID_SPRITE_HEIGHT, False)
 
 # Create Player
@@ -579,6 +586,8 @@ for i in range(0, 438, 16):
 timer = pygame.time.get_ticks()
 gamePhase = 1
 
+scoreLabel = font.render("Score", True, (255, 255, 255))
+
 '''
     MAIN LOOP
 '''
@@ -591,42 +600,54 @@ while running:
 
     key = pygame.key.get_pressed()
     
-    player.move(key)
-    player.eat()
+    if not player.lose:
+        player.move(key)
+        player.eat()
+        player.checkGhostCollision()
 
-    now = pygame.time.get_ticks()
-    if gameMode == "Chase":
-        if now - timer >= 20 * 1000 and gamePhase < 4:
-            print("Scatter")
-            gameMode = "Scatter"
-            gamePhase += 1
-            timer = now
+        now = pygame.time.get_ticks()
+        if gameMode == "Chase":
+            if now - timer >= 20 * 1000 and gamePhase < 4:
+                print("Scatter")
+                gameMode = "Scatter"
+                gamePhase += 1
+                timer = now
+        else:
+            if now - timer >= 7 * 1000 and gamePhase <= 2:
+                print("Chase")
+                gameMode = "Chase"
+                timer = now
+            elif now - timer >= 5 * 1000:
+                print("Chase")
+                gameMode = "Chase"
+                timer = now
+
+        if gameMode == "Chase":
+            redGhost.move(player.rect)
+            pinkGhost.move(getPinkGhostTarget(player))
+            if totalDots - len(dots) >= 30:
+                blueGhost.move(getBlueGhostTarget(player, redGhost))
+            if totalDots - len(dots) >= totalDots/3:
+                orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
+        elif gameMode == "Scatter":
+            redGhost.move(redGhost.scatterTargetRect)
+            pinkGhost.move(pinkGhost.scatterTargetRect)
+            if totalDots - len(dots) >= 30:
+                blueGhost.move(blueGhost.scatterTargetRect)
+            if totalDots - len(dots) >= totalDots/3:
+                orangeGhost.move(orangeGhost.scatterTargetRect)
     else:
-        if now - timer >= 7 * 1000 and gamePhase <= 2:
-            print("Chase")
-            gameMode = "Chase"
-            timer = now
-        elif now - timer >= 5 * 1000:
-            print("Chase")
-            gameMode = "Chase"
-            timer = now
+        player.stop()
+        for ghost in ghost_list:
+            ghost.stop()
 
-    if gameMode == "Chase":
-        redGhost.move(player.rect)
-        pinkGhost.move(getPinkGhostTarget(player))
-        if totalDots - len(dots) >= 30:
-            blueGhost.move(getBlueGhostTarget(player, redGhost))
-        if totalDots - len(dots) >= totalDots/3:
-            orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
-    elif gameMode == "Scatter":
-        redGhost.move(redGhost.scatterTargetRect)
-        pinkGhost.move(pinkGhost.scatterTargetRect)
-        if totalDots - len(dots) >= 30:
-            blueGhost.move(blueGhost.scatterTargetRect)
-        if totalDots - len(dots) >= totalDots/3:
-            orangeGhost.move(orangeGhost.scatterTargetRect)
-
+    screen.fill((0, 0, 0))
     screen.blit(map, (0, 0))
+    screen.blit(scoreLabel,
+        ((SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH*2) + 24, 24))
+    scoreText = font.render(str(player.score), True, (255, 255, 255))
+    screen.blit(scoreText,
+        ((SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH*2) + 24, (SPRITE_PIXEL_SIZE*2) + 24))
     if time.time() - animStartTime > 0.5:
         if player.image == player.images[0]:
             player.image = player.images[1]
