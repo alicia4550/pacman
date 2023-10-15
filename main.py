@@ -1,5 +1,7 @@
 import pygame
 import time
+import math
+
 pygame.init()
 
 '''
@@ -42,6 +44,8 @@ class Player(pygame.sprite.Sprite):
         self.frame = 0
 
         self.score = 0
+        self.tileNumber = 0
+        self.currentDirection = 3
 
     def move(self, key):
         if key[pygame.K_LEFT]:
@@ -49,6 +53,7 @@ class Player(pygame.sprite.Sprite):
             if rect.collidelist(walls) is -1:
                 self.images = self.leftImages
                 self.control(-steps, 0)
+                self.currentDirection = 1
             else:
                 self.stop()
         elif key[pygame.K_RIGHT]:
@@ -56,6 +61,7 @@ class Player(pygame.sprite.Sprite):
             if rect.collidelist(walls) is -1:
                 self.images = self.rightImages
                 self.control(steps, 0)
+                self.currentDirection = 3
             else:
                 self.stop()
         elif key[pygame.K_UP]:
@@ -63,6 +69,7 @@ class Player(pygame.sprite.Sprite):
             if rect.collidelist(walls) is -1:
                 self.images = self.upImages
                 self.control(0, -steps)
+                self.currentDirection = 0
             else:
                 self.stop()
         elif key[pygame.K_DOWN]:
@@ -70,10 +77,12 @@ class Player(pygame.sprite.Sprite):
             if rect.collidelist(walls) is -1:
                 self.images = self.downImages
                 self.control(0, steps)
+                self.currentDirection = 2
             else:
                 self.stop()
         else:
             self.stop()
+        self.tileNumber = self.rect.collidelist(grid)
 
     def eat(self):
         if self.rect.collidelist(dots) is not -1:
@@ -99,7 +108,187 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
 
+class Ghost(pygame.sprite.Sprite):
+    def __init__(self, yOffset):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.rightImage = get_image(spritesheet, 28.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.leftImage = get_image(spritesheet, 30.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.upImage = get_image(spritesheet, 32.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.downImage = get_image(spritesheet, 34.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.image = self.rightImage
+
+        self.rect = self.image.get_rect()
+        self.movex = 0
+        self.movey = 0
+        self.targetRect = player.rect
+
+        self.tileNumber = 0
+        self.currentDirection = 3
+
+        self.reachedInit = False
+        self.initX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+        self.initY = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+
+    def move(self, targetRect):
+        if not self.reachedInit:
+            if abs(self.initX - self.rect.x) < 10 and abs(self.initY - self.rect.y) < 0.5:
+                self.reachedInit = True
+            self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/100)
+        else:
+            self.targetRect = targetRect
+            if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
+                self.stop()
+                dir = self.getPossibleDirections()
+                if len(dir) is 0:
+                    print(dir)
+                    self.stop()
+                elif len(dir) is 1:
+                    self.moveDirection(dir[0])
+                elif len(dir) is 2:
+                    if self.currentDirection in dir:
+                        self.moveDirection(self.currentDirection)
+                    else:
+                        if (dir[0] + self.currentDirection) % 2 is 0:
+                            self.moveDirection(dir[1])
+                        else:
+                            self.moveDirection(dir[0])
+                else:
+                    vector = self.findVector()
+                    if vector[0] == 0:
+                        if vector[1] < 0:
+                            priority = [0, 1, 3, 2]
+                            self.pickDirection(dir, priority)
+                        elif vector[1] > 0:
+                            priority = [2, 1, 3, 0]
+                            self.pickDirection(dir, priority)
+                        else:
+                            self.stop()
+                    elif vector[1] == 0:
+                        if vector[0] < 0:
+                            priority = [1, 0, 2, 3]
+                            self.pickDirection(dir, priority)
+                        elif vector[0] > 0:
+                            priority = [3, 0, 2, 1]
+                            self.pickDirection(dir, priority)
+                        else:
+                            self.stop()
+                    elif vector[0] < 0:
+                        if vector[1] < 0:
+                            if abs(vector[1]/vector[0]) < 1:
+                                priority = [1, 0, 2, 3]
+                                self.pickDirection(dir, priority)
+                            else:
+                                priority = [0, 1, 3, 2]
+                                self.pickDirection(dir, priority)
+                        else:
+                            if abs(vector[1]/vector[0]) < 1:
+                                priority = [1, 2, 0, 3]
+                                self.pickDirection(dir, priority)
+                            else:
+                                priority = [2, 1, 3, 0]
+                                self.pickDirection(dir, priority)
+                    else:
+                        if vector[1] < 0:
+                            if abs(vector[1]/vector[0]) < 1:
+                                priority = [3, 0, 2, 1]
+                                self.pickDirection(dir, priority)
+                            else:
+                                priority = [0, 3, 1, 2]
+                                self.pickDirection(dir, priority)
+                        else:
+                            if abs(vector[1]/vector[0]) < 1:
+                                priority = [3, 2, 0, 1]
+                                self.pickDirection(dir, priority)
+                            else:
+                                priority = [2, 3, 1, 0]
+                                self.pickDirection(dir, priority)
+            else:
+                self.moveDirection(self.currentDirection)
+        self.tileNumber = self.rect.collidelist(grid)
+    
+    def control(self, x, y):
+        self.movex = x
+        self.movey = y
+    
+    def stop(self):
+        self.movex = 0
+        self.movey = 0
+
+    def update(self):
+        self.rect.x = self.rect.x + self.movex 
+        self.rect.y = self.rect.y + self.movey
+    
+    def findVector(self):
+        x1 = self.rect.x
+        y1 = self.rect.y
+        x2 = self.targetRect.x
+        y2 = self.targetRect.y
+
+        return [x2 - x1, y2 - y1]
+    
+    def pickDirection(self, dir, priority):
+        for i in priority:
+            if i in dir:
+                self.moveDirection(i)
+                return
+        self.stop()
+
+    def moveDirection(self, dir):
+        if dir is 1:
+            self.image = self.leftImage
+            self.control(-steps, 0)
+            self.currentDirection = 1
+        elif dir is 3:
+            self.image = self.rightImage
+            self.control(steps, 0)
+            self.currentDirection = 3
+        elif dir is 0:
+            self.image = self.upImage
+            self.control(0, -steps)
+            self.currentDirection = 0
+        elif dir is 2:
+            self.image = self.downImage
+            self.control(0, steps)
+            self.currentDirection = 2
+        else:
+            self.stop()
+
+    def getPossibleDirections(self):
+        x = 0
+        y = 0
+        if self.rect.x % 16 < 8:
+            x = math.floor((self.rect.x - 8) / 16.0) + 1
+        else:
+            x = math.ceil((self.rect.x - 8) / 16.0) + 1
+        if self.rect.y % 16 < 8:
+            y = math.floor((self.rect.y - 8) / 16.0) + 1
+        else:
+            y = math.ceil((self.rect.y - 8) / 16.0) + 1
+        
+        dir = [] # 0 = up, 1 = left, 2 = right, 3 = down
+        if grid[(x * 31) + (y - 1)].rect.collidelist(walls) is -1:
+            dir.append(0)
+        if grid[((x - 1) * 31) + y].rect.collidelist(walls) is -1:
+            dir.append(1)
+        if grid[(x * 31) + (y + 1)].rect.collidelist(walls) is -1:
+            dir.append(2)
+        if grid[((x + 1) * 31) + y].rect.collidelist(walls) is -1:
+            dir.append(3)
+        return dir
+
+
 class Wall(object):
+    def __init__(self, x, y, width, height):
+        self.x = (x * 32)
+        self.y = (y * 32)
+        self.width = (width * 32)
+        self.height = (height * 32)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+    def draw(self, win):
+        pygame.draw.rect(win, (0, 255, 255), self.rect, 2)
+
+class Tile(object):
     def __init__(self, x, y, width, height):
         self.x = (x * 32)
         self.y = (y * 32)
@@ -140,6 +329,22 @@ def get_image(sheet, xOffset, yOffset, width, height, transparent):
 
     return image
 
+def getPinkGhostTarget(player):
+    x = player.rect.x
+    y = player.rect.y
+    dir = player.currentDirection
+
+    if dir == 0:
+        y -= 8 * SPRITE_PIXEL_SIZE
+    elif dir == 1:
+        x -= 8 * SPRITE_PIXEL_SIZE
+    elif dir == 2:
+        y += 8 * SPRITE_PIXEL_SIZE
+    else:
+        x += 8 * SPRITE_PIXEL_SIZE
+
+    return pygame.Rect(x, y, 16, 16)
+
 '''
     SET UP
 '''
@@ -162,6 +367,29 @@ player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
 player_list = pygame.sprite.Group()
 player_list.add(player)
 steps = 1
+
+# Create Ghosts
+redGhost = Ghost(0)
+redGhost.rect.x = (GRID_SPRITE_WIDTH - 3.25) * SPRITE_PIXEL_SIZE
+redGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+pinkGhost = Ghost(1)
+pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 1.75) * SPRITE_PIXEL_SIZE
+pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+blueGhost = Ghost(2)
+blueGhost.rect.x = (GRID_SPRITE_WIDTH - 0.25) * SPRITE_PIXEL_SIZE
+blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+orangeGhost = Ghost(3)
+orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1.25) * SPRITE_PIXEL_SIZE
+orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+ghost_list = pygame.sprite.Group()
+ghost_list.add(redGhost)
+ghost_list.add(pinkGhost)
+ghost_list.add(blueGhost)
+ghost_list.add(orangeGhost)
 
 # Create walls
 wall1 = Wall(1.25, 1.25, 1.5, 1)
@@ -301,10 +529,10 @@ pellets = [
 animStartTime = time.time()
 
 grid = []
-for i in range(16, 422, 16):
-    for j in range(16, 470, 16):
-        block = Wall(i/32.0, j/32.0, 0.5, 0.5)
-        grid.append(block)
+for i in range(0, 438, 16):
+    for j in range(0, 486, 16):
+        tile = Tile(i/32.0, j/32.0, 0.5, 0.5)
+        grid.append(tile)
 
 '''
     MAIN LOOP
@@ -321,6 +549,9 @@ while running:
     player.move(key)
     player.eat()
 
+    redGhost.move(player.rect)
+    pinkGhost.move(getPinkGhostTarget(player))
+
     screen.blit(map, (0, 0))
     if time.time() - animStartTime > 0.5:
         if player.image == player.images[0]:
@@ -329,9 +560,14 @@ while running:
             player.image = player.images[0]
         animStartTime = time.time()
     player.update()
+    redGhost.update()
+    pinkGhost.update()
 
-    # for block in grid:
-    #     block.draw(screen)
+    # for tile in grid:
+    #     tile.draw(screen)
+
+    # for wall in walls:
+    #     wall.draw(screen)
 
     for dot in dots:
         dot.draw(screen)
@@ -340,6 +576,7 @@ while running:
         pellet.draw(screen)
 
     player_list.draw(screen)
+    ghost_list.draw(screen)
 
     pygame.display.flip()
     pygame.display.update()
