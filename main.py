@@ -8,11 +8,15 @@ font = pygame.font.Font("Retro Gaming.ttf", 26)
 '''
     CONSTANTS
 '''
-SCREEN_WIDTH = 600
+SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
 SPRITE_PIXEL_SIZE = 16
 GRID_SPRITE_WIDTH = 14
 GRID_SPRITE_HEIGHT = 16
+
+# 4:5 aspect ratio
+LCD_WIDTH = 448
+LCD_HEIGHT =  560
 
 FPS = 40
 
@@ -429,7 +433,9 @@ def getOrangeGhostTarget(player, orangeGhost):
 '''
     SET UP
 '''
-screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+display = pygame.display.set_mode([LCD_WIDTH, LCD_HEIGHT])
+
+screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 spritesheet = pygame.image.load('Arcade - Pac-Man - General Sprites.png').convert_alpha()
 
@@ -610,16 +616,13 @@ pellets = [
 ]
 
 life1 = Life()
-life1.rect.x = (GRID_SPRITE_WIDTH + 15.25) * SPRITE_PIXEL_SIZE
-life1.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+life1.rect = life1.image.get_rect(center=(16, LCD_HEIGHT - 16))
 
 life2 = Life()
-life2.rect.x = (GRID_SPRITE_WIDTH + 17.25) * SPRITE_PIXEL_SIZE
-life2.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+life2.rect = life2.image.get_rect(center=(48, LCD_HEIGHT - 16))
 
 life3 = Life()
-life3.rect.x = (GRID_SPRITE_WIDTH + 19.25) * SPRITE_PIXEL_SIZE
-life3.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+life3.rect = life3.image.get_rect(center=(80, LCD_HEIGHT - 16))
 
 life_list = pygame.sprite.Group()
 life_list.add(life1)
@@ -645,6 +648,9 @@ livesLeft = 3
     MAIN LOOP
 '''
 while running:
+
+    display.fill((0, 0, 0))
+    display.blit(screen, (0, 32))
 
     # Did the user click the window close button?
     for event in pygame.event.get():
@@ -706,11 +712,14 @@ while running:
 
     screen.fill((0, 0, 0))
     screen.blit(map, (0, 0))
-    screen.blit(scoreLabel,
-        ((SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH*2) + 24, 24))
+
+    display.blit(scoreLabel, (LCD_WIDTH / 2, 0))
     scoreText = font.render(str(player.score), True, (255, 255, 255))
-    screen.blit(scoreText,
-        ((SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH*2) + 24, (SPRITE_PIXEL_SIZE*2) + 24))
+    scoreText_rect = scoreText.get_rect()
+    scoreText_rect.top = 0
+    scoreText_rect.right = LCD_WIDTH * 0.925
+    display.blit(scoreText, scoreText_rect)
+
     if time.time() - animStartTime > animInterval:
         if player.lose is False:
             if player.image == player.images[0]:
@@ -769,7 +778,7 @@ while running:
 
     player_list.draw(screen)
     ghost_list.draw(screen)
-    life_list.draw(screen)
+    life_list.draw(display)
 
     pygame.display.flip()
     pygame.display.update()
