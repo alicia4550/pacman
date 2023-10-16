@@ -15,8 +15,8 @@ GRID_SPRITE_WIDTH = 14
 GRID_SPRITE_HEIGHT = 16
 
 # 4:5 aspect ratio
-LCD_WIDTH = 448
-LCD_HEIGHT =  560
+LCD_WIDTH = 448 # 550
+LCD_HEIGHT =  560 # 728
 
 FPS = 40
 
@@ -120,7 +120,8 @@ class Player(pygame.sprite.Sprite):
 
     def checkGhostCollision(self):
         for ghost in ghost_list:
-            if self.rect.colliderect(ghost.rect):
+            # if self.rect.colliderect(ghost.rect):
+            if self.tileNumber == ghost.tileNumber:
                 self.lose = True
                 self.images = self.loseImages
                 self.image = self.images[0]
@@ -255,10 +256,11 @@ class Ghost(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
 
-        if self.rect.x > 425:
+        print(self.rect.x)
+        if self.rect.x > 435:
             self.rect.x = 0
         elif self.rect.x < 0:
-            self.rect.x = 425
+            self.rect.x = 420
     
     def findVector(self):
         x1 = self.rect.x
@@ -304,6 +306,8 @@ class Ghost(pygame.sprite.Sprite):
             x = math.floor((self.rect.x - 8) / 16.0) + 1
         else:
             x = math.ceil((self.rect.x - 8) / 16.0) + 1
+        if x >= 27:
+            x = 27
         if self.rect.y % 16 < 8:
             y = math.floor((self.rect.y - 8) / 16.0) + 1
         else:
@@ -312,10 +316,14 @@ class Ghost(pygame.sprite.Sprite):
         dir = [] # 0 = up, 1 = left, 2 = right, 3 = down
         if grid[(x * 31) + (y - 1)].rect.collidelist(walls) is -1:
             dir.append(0)
+        if x - 1 < 0:
+            return [1]
         if grid[((x - 1) * 31) + y].rect.collidelist(walls) is -1:
             dir.append(1)
         if grid[(x * 31) + (y + 1)].rect.collidelist(walls) is -1:
             dir.append(2)
+        if x + 1 >= 28:
+            return [3]
         if grid[((x + 1) * 31) + y].rect.collidelist(walls) is -1:
             dir.append(3)
         return dir
@@ -659,7 +667,7 @@ while running:
 
     key = pygame.key.get_pressed()
     
-    if not player.lose:
+    if not player.lose and (len(dots) > 0 or len(pellets) > 0):
         player.move(key)
         player.eat()
         player.checkGhostCollision()
@@ -709,6 +717,16 @@ while running:
         player.stop()
         for ghost in ghost_list:
             ghost.stop()
+        if livesLeft == 0:
+            finalText = font.render("You lose", True, (255, 255, 255))
+            finalText_rect = finalText.get_rect()
+            finalText_rect.center = (LCD_WIDTH/2, (LCD_HEIGHT/2) + 32)
+            display.blit(finalText, finalText_rect)
+        elif len(dots) == 0 and len(pellets) == 0:
+            finalText = font.render("You win", True, (255, 255, 255))
+            finalText_rect = finalText.get_rect()
+            finalText_rect.center = (LCD_WIDTH/2, (LCD_HEIGHT/2) + 32)
+            display.blit(finalText, finalText_rect)
 
     screen.fill((0, 0, 0))
     screen.blit(map, (0, 0))
