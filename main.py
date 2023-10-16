@@ -120,7 +120,6 @@ class Player(pygame.sprite.Sprite):
                 self.lose = True
                 self.images = self.loseImages
                 self.image = self.images[0]
-                animStartTime = time.time()
 
     def control(self, x, y):
         self.movex = x
@@ -343,6 +342,12 @@ class Pellet(object):
         self.rect = pygame.Rect(self.x, self.y, 16, 16)
     def draw(self, win):
         pygame.draw.circle(win, (255, 183, 174), (self.x, self.y), 8)
+
+class Life(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = get_image(spritesheet, 36.5, 1, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.rect = self.image.get_rect()
 
 '''
     FUNCTIONS
@@ -594,6 +599,23 @@ pellets = [
     pellet4
 ]
 
+life1 = Life()
+life1.rect.x = (GRID_SPRITE_WIDTH + 15.25) * SPRITE_PIXEL_SIZE
+life1.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+
+life2 = Life()
+life2.rect.x = (GRID_SPRITE_WIDTH + 17.25) * SPRITE_PIXEL_SIZE
+life2.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+
+life3 = Life()
+life3.rect.x = (GRID_SPRITE_WIDTH + 19.25) * SPRITE_PIXEL_SIZE
+life3.rect.y = (GRID_SPRITE_HEIGHT - 10) * SPRITE_PIXEL_SIZE
+
+life_list = pygame.sprite.Group()
+life_list.add(life1)
+life_list.add(life2)
+life_list.add(life3)
+
 animStartTime = time.time()
 
 grid = []
@@ -607,6 +629,7 @@ gamePhase = 1
 
 scoreLabel = font.render("Score", True, (255, 255, 255))
 animInterval = 0.5
+livesLeft = 3
 
 '''
     MAIN LOOP
@@ -627,6 +650,13 @@ while running:
 
         if player.lose:
             animInterval = 0.25
+            if livesLeft is 3:
+                life_list.remove(life3)
+            elif livesLeft is 2:
+                life_list.remove(life2)
+            elif livesLeft is 1:
+                life_list.remove(life1)
+            livesLeft -= 1
 
         now = pygame.time.get_ticks()
         if gameMode == "Chase":
@@ -681,9 +711,12 @@ while running:
             index = player.images.index(player.image)
             if index < len(player.images) - 1:
                 player.image = player.images[index+1]
-            else:
+            elif livesLeft > 0:
                 player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
                 player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+                player.images = player.rightImages
+                player.currentDirection = 3
+                animInterval = 0.5
 
                 redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
                 redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
@@ -726,6 +759,7 @@ while running:
 
     player_list.draw(screen)
     ghost_list.draw(screen)
+    life_list.draw(screen)
 
     pygame.display.flip()
     pygame.display.update()
