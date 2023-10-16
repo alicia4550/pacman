@@ -32,10 +32,26 @@ class Player(pygame.sprite.Sprite):
         img_6 = get_image(spritesheet, 28.5+1.9, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
         img_7 = get_image(spritesheet, 29.5+2.0, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
 
+        img_8 = get_image(spritesheet, 30.5+2.1, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_9 = get_image(spritesheet, 31.5+2.15, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_10 = get_image(spritesheet, 32.5+2.2, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_11 = get_image(spritesheet, 33.5+2.25, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_12 = get_image(spritesheet, 34.5+2.3, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_13 = get_image(spritesheet, 35.5+2.35, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_14 = get_image(spritesheet, 36.5+2.4, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_15 = get_image(spritesheet, 37.5+2.45, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_16 = get_image(spritesheet, 38.5+2.5, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_17 = get_image(spritesheet, 39.5+2.55, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_18 = get_image(spritesheet, 40.5+2.6, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_19 = get_image(spritesheet, 41.5+2.65, 0+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+        img_20 = get_image(spritesheet, 41.5+2.65, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
+
+
         self.rightImages = [img_0, img_1]
         self.leftImages = [img_2, img_3]
         self.upImages = [img_4, img_5]
         self.downImages = [img_6, img_7]
+        self.loseImages = [img_8, img_9, img_10, img_11, img_12, img_13, img_14, img_15, img_16, img_17, img_18, img_19, img_20]
 
         self.images = self.rightImages
         self.image = self.images[0]
@@ -102,6 +118,9 @@ class Player(pygame.sprite.Sprite):
         for ghost in ghost_list:
             if self.rect.colliderect(ghost.rect):
                 self.lose = True
+                self.images = self.loseImages
+                self.image = self.images[0]
+                animStartTime = time.time()
 
     def control(self, x, y):
         self.movex = x
@@ -587,6 +606,8 @@ timer = pygame.time.get_ticks()
 gamePhase = 1
 
 scoreLabel = font.render("Score", True, (255, 255, 255))
+hasInit = True
+animInterval = 0.5
 
 '''
     MAIN LOOP
@@ -604,6 +625,10 @@ while running:
         player.move(key)
         player.eat()
         player.checkGhostCollision()
+
+        if player.lose:
+            hasInit = False
+            animInterval = 0.25
 
         now = pygame.time.get_ticks()
         if gameMode == "Chase":
@@ -648,11 +673,16 @@ while running:
     scoreText = font.render(str(player.score), True, (255, 255, 255))
     screen.blit(scoreText,
         ((SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH*2) + 24, (SPRITE_PIXEL_SIZE*2) + 24))
-    if time.time() - animStartTime > 0.5:
-        if player.image == player.images[0]:
-            player.image = player.images[1]
+    if time.time() - animStartTime > animInterval:
+        if player.lose is False:
+            if player.image == player.images[0]:
+                player.image = player.images[1]
+            else:
+                player.image = player.images[0]
         else:
-            player.image = player.images[0]
+            index = player.images.index(player.image)
+            if index < len(player.images) - 1:
+                player.image = player.images[index+1]
         animStartTime = time.time()
     player.update()
     redGhost.update()
