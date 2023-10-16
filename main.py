@@ -606,7 +606,6 @@ timer = pygame.time.get_ticks()
 gamePhase = 1
 
 scoreLabel = font.render("Score", True, (255, 255, 255))
-hasInit = True
 animInterval = 0.5
 
 '''
@@ -627,7 +626,6 @@ while running:
         player.checkGhostCollision()
 
         if player.lose:
-            hasInit = False
             animInterval = 0.25
 
         now = pygame.time.get_ticks()
@@ -683,6 +681,30 @@ while running:
             index = player.images.index(player.image)
             if index < len(player.images) - 1:
                 player.image = player.images[index+1]
+            else:
+                player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
+                player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+
+                redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+                redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+                redGhost.currentDirection = 3
+
+                pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
+                pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                pinkGhost.currentDirection = 3
+                pinkGhost.reachedInit = False
+
+                blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+                blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                blueGhost.currentDirection = 3
+                blueGhost.reachedInit = False
+
+                orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
+                orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                orangeGhost.currentDirection = 3
+                orangeGhost.reachedInit = False
+
+                player.lose = False
         animStartTime = time.time()
     player.update()
     redGhost.update()
