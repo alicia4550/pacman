@@ -133,6 +133,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
 
+        if self.rect.x > 425:
+            self.rect.x = 0
+        elif self.rect.x < 0:
+            self.rect.x = 425
+
 class Ghost(pygame.sprite.Sprite):
     def __init__(self, yOffset, scatterTargetRect):
         pygame.sprite.Sprite.__init__(self)
@@ -245,6 +250,11 @@ class Ghost(pygame.sprite.Sprite):
     def update(self):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
+
+        if self.rect.x > 425:
+            self.rect.x = 0
+        elif self.rect.x < 0:
+            self.rect.x = 425
     
     def findVector(self):
         x1 = self.rect.x
