@@ -53,6 +53,8 @@ class Player(pygame.sprite.Sprite):
         self.currentDirection = 3
         self.lose = False
 
+        self.ghostsEaten = 0
+
         self.grid = grid
 
     def move(self, key, walls, gameMode):
@@ -114,9 +116,15 @@ class Player(pygame.sprite.Sprite):
     def checkGhostCollision(self, ghost_list):
         for ghost in ghost_list:
             if self.tileNumber == ghost.tileNumber:
-                self.lose = True
-                self.images = self.loseImages
-                self.image = self.images[0]
+                if ghost.status == "Alive":
+                    self.lose = True
+                    self.images = self.loseImages
+                    self.image = self.images[0]
+                elif ghost.status == "Frightened":
+                    print("Eaten")
+                    self.ghostsEaten += 1
+                    ghost.status = "Eaten"
+                    self.score += int(math.pow(2, self.ghostsEaten) * 100)
 
     def control(self, x, y):
         self.movex = x

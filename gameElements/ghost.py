@@ -14,8 +14,15 @@ class Ghost(pygame.sprite.Sprite):
         self.leftImage = get_image(spritesheet, 30.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.upImage = get_image(spritesheet, 32.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.downImage = get_image(spritesheet, 34.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        
         self.frightenedBlueImage = get_image(spritesheet, 36.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.frightenedWhiteImage = get_image(spritesheet, 38.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.eyesRightImage = get_image(spritesheet, 36.5, 5, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.eyesLeftImage = get_image(spritesheet, 37.5, 5, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.eyesUpImage = get_image(spritesheet, 38.5, 5, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.eyesDownImage = get_image(spritesheet, 39.5, 5, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.status = "Alive"
+        
         self.image = self.rightImage
 
         self.rect = self.image.get_rect()
@@ -31,6 +38,7 @@ class Ghost(pygame.sprite.Sprite):
         self.tileNumber = 0
         self.currentDirection = 3
 
+        self.reachedHome = False
         self.reachedInit = False
         self.initX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
         self.initY = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
@@ -44,7 +52,24 @@ class Ghost(pygame.sprite.Sprite):
                 self.reachedInit = True
             self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/100)
         else:
-            self.targetRect = targetRect
+            if self.status == "Eaten":
+                if self.reachedHome is False:
+                    self.targetRect = pygame.Rect(self.initX, self.initY, 16, 16)
+                    if abs(self.initX - self.rect.x) < 10 and abs(self.initY - self.rect.y) < 0.5:
+                        self.reachedHome = True
+                        return
+                else:
+                    if abs(self.initX - self.rect.x) < 10 and abs(self.initY + 32 - self.rect.y) < 0.5:
+                        self.reachedInit = False
+                        self.reachedHome = False
+                        self.status = "Alive"
+                        self.image = self.upImage
+                    else:
+                        self.control(0, 1)
+                        return
+            
+            else:
+                self.targetRect = targetRect
             if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
                 self.stop()
                 dir = self.getPossibleDirections()
@@ -123,6 +148,7 @@ class Ghost(pygame.sprite.Sprite):
             while (newDir + self.currentDirection) % 2 == 0 and newDir != self.currentDirection:
                 newDir = random.choice(dir)
             self.moveDirection(newDir, frightenedTime)
+        self.tileNumber = self.rect.collidelist(self.grid)
     
     def control(self, x, y):
         self.movex = x
@@ -136,7 +162,6 @@ class Ghost(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
 
-        # print(self.rect.x)
         if self.rect.x > 435:
             self.rect.x = 0
         elif self.rect.x < 0:
@@ -166,28 +191,55 @@ class Ghost(pygame.sprite.Sprite):
             steps = self.speed
         steps = 1
         if dir is 1:
-            self.image = self.leftImage
+            if self.status == "Alive":
+                self.image = self.leftImage
+            elif self.status == "Frightened":
+                if frightenedTime < 4 * 1000:
+                    self.image = self.frightenedBlueImage
+                else:
+                    self.image = self.frightenedWhiteImage
+            elif self.status == "Eaten":
+                self.image = self.eyesLeftImage
             self.control(-steps, 0)
             self.currentDirection = 1
         elif dir is 3:
-            self.image = self.rightImage
+            if self.status == "Alive":
+                self.image = self.rightImage
+            elif self.status == "Frightened":
+                if frightenedTime < 4 * 1000:
+                    self.image = self.frightenedBlueImage
+                else:
+                    self.image = self.frightenedWhiteImage
+            elif self.status == "Eaten":
+                self.image = self.eyesRightImage
             self.control(steps, 0)
             self.currentDirection = 3
         elif dir is 0:
-            self.image = self.upImage
+            if self.status == "Alive":
+                self.image = self.upImage
+            elif self.status == "Frightened":
+                if frightenedTime < 4 * 1000:
+                    self.image = self.frightenedBlueImage
+                else:
+                    self.image = self.frightenedWhiteImage
+            elif self.status == "Eaten":
+                self.image = self.eyesUpImage
             self.control(0, -steps)
             self.currentDirection = 0
         elif dir is 2:
-            self.image = self.downImage
+            if self.status == "Alive":
+                self.image = self.downImage
+            elif self.status == "Frightened":
+                if frightenedTime < 4 * 1000:
+                    self.image = self.frightenedBlueImage
+                else:
+                    self.image = self.frightenedWhiteImage
+            elif self.status == "Eaten":
+                self.image = self.eyesDownImage
             self.control(0, steps)
             self.currentDirection = 2
         else:
             self.stop()
-        if frightenedTime != -1:
-            if frightenedTime < 4 * 1000:
-                self.image = self.frightenedBlueImage
-            else:
-                self.image = self.frightenedWhiteImage
         
 
     def getPossibleDirections(self):

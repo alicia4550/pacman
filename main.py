@@ -253,6 +253,8 @@ while running:
 
         if isFrightened is True:
             gameMode = "Frightened"
+            for ghost in ghost_list:
+                ghost.status = "Frightened"
             timer = pygame.time.get_ticks()
 
         if player.lose:
@@ -284,6 +286,9 @@ while running:
         else:
             if now - timer >= 6 * 1000:
                 print("Chase")
+                for ghost in ghost_list:
+                    if ghost.status != "Eaten":
+                        ghost.status = "Alive"
                 gameMode = "Chase"
                 timer = now
 
@@ -326,7 +331,7 @@ while running:
     scoreText = font.render(str(player.score), True, (255, 255, 255))
     scoreText_rect = scoreText.get_rect()
     scoreText_rect.top = 0
-    scoreText_rect.right = LCD_WIDTH * 0.925
+    scoreText_rect.right = LCD_WIDTH * 0.975
     display.blit(scoreText, scoreText_rect)
 
     if time.time() - animStartTime > animInterval:
