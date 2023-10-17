@@ -1,6 +1,7 @@
 import pygame
 import time
 import math
+import random
 
 pygame.init()
 font = pygame.font.Font("Retro Gaming.ttf", 26)
@@ -64,12 +65,20 @@ class Player(pygame.sprite.Sprite):
         self.movey = 0
         self.frame = 0
 
+        self.speed = 0.8
+        self.frightenedSpeed = 0.9
+
         self.score = 0
         self.tileNumber = 0
         self.currentDirection = 3
         self.lose = False
 
     def move(self, key):
+        if gameMode == "Frightened":
+            steps = self.frightenedSpeed
+        else:
+            steps = self.speed
+        steps = 1
         if key[pygame.K_LEFT]:
             rect = pygame.Rect(self.rect.x - 1, self.rect.y, self.rect.width, self.rect.height)
             if rect.collidelist(walls) is -1:
@@ -111,12 +120,16 @@ class Player(pygame.sprite.Sprite):
             index = self.rect.collidelist(dots)
             dots.pop(index)
             self.score += 10
-            print(self.score)
+            # print(self.score)
         if self.rect.collidelist(pellets) is not -1:
+            print("Frightened")
+            global gameMode, timer
+            gameMode = "Frightened"
+            timer = pygame.time.get_ticks()
             index = self.rect.collidelist(pellets)
             pellets.pop(index)
             self.score += 50
-            print(self.score)
+            # print(self.score)
 
     def checkGhostCollision(self):
         for ghost in ghost_list:
@@ -151,6 +164,7 @@ class Ghost(pygame.sprite.Sprite):
         self.leftImage = get_image(spritesheet, 30.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.upImage = get_image(spritesheet, 32.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.downImage = get_image(spritesheet, 34.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.frightenedImage = get_image(spritesheet, 36.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.image = self.rightImage
 
         self.rect = self.image.get_rect()
@@ -159,6 +173,9 @@ class Ghost(pygame.sprite.Sprite):
         self.targetRect = player.rect
         self.scatterTargetRect = scatterTargetRect
         self.movementMode = "Chase"
+
+        self.speed = 0.75
+        self.frightenedSpeed = 0.5
 
         self.tileNumber = 0
         self.currentDirection = 3
@@ -243,6 +260,12 @@ class Ghost(pygame.sprite.Sprite):
             else:
                 self.moveDirection(self.currentDirection)
         self.tileNumber = self.rect.collidelist(grid)
+
+    def moveRandom(self):
+        if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
+            self.stop()
+            dir = self.getPossibleDirections()
+            self.moveDirection(random.choice(dir))
     
     def control(self, x, y):
         self.movex = x
@@ -256,7 +279,7 @@ class Ghost(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.movex 
         self.rect.y = self.rect.y + self.movey
 
-        print(self.rect.x)
+        # print(self.rect.x)
         if self.rect.x > 435:
             self.rect.x = 0
         elif self.rect.x < 0:
@@ -280,6 +303,11 @@ class Ghost(pygame.sprite.Sprite):
         self.stop()
 
     def moveDirection(self, dir):
+        if gameMode == "Frightened":
+            steps = self.frightenedSpeed
+        else:
+            steps = self.speed
+        steps = 1
         if dir is 1:
             self.image = self.leftImage
             self.control(-steps, 0)
@@ -298,6 +326,9 @@ class Ghost(pygame.sprite.Sprite):
             self.currentDirection = 2
         else:
             self.stop()
+        if gameMode == "Frightened":
+            self.image = self.frightenedImage
+        
 
     def getPossibleDirections(self):
         x = 0
@@ -462,7 +493,7 @@ player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
 player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
 player_list = pygame.sprite.Group()
 player_list.add(player)
-steps = 1
+# steps = 1
 
 # Create Ghosts
 redGhost = Ghost(0, pygame.Rect(10.5*32, -0.5*32, 16, 16))
@@ -689,12 +720,17 @@ while running:
                 gameMode = "Scatter"
                 gamePhase += 1
                 timer = now
-        else:
+        elif gameMode == "Scatter":
             if now - timer >= 7 * 1000 and gamePhase <= 2:
                 print("Chase")
                 gameMode = "Chase"
                 timer = now
             elif now - timer >= 5 * 1000:
+                print("Chase")
+                gameMode = "Chase"
+                timer = now
+        else:
+            if now - timer >= 6 * 1000:
                 print("Chase")
                 gameMode = "Chase"
                 timer = now
@@ -713,6 +749,9 @@ while running:
                 blueGhost.move(blueGhost.scatterTargetRect)
             if totalDots - len(dots) >= totalDots/3:
                 orangeGhost.move(orangeGhost.scatterTargetRect)
+        elif gameMode == "Frightened":
+            for ghost in ghost_list:
+                ghost.moveRandom()
     else:
         player.stop()
         for ghost in ghost_list:
