@@ -3,470 +3,19 @@ import time
 import math
 import random
 
+from constants import *
+from util import *
+
+from gameElements.dot import Dot
+from gameElements.ghost import Ghost
+from gameElements.life import Life
+from gameElements.pellet import Pellet
+from gameElements.player import Player
+from gameElements.tile import Tile
+from gameElements.wall import Wall
+
 pygame.init()
 font = pygame.font.Font("Retro Gaming.ttf", 26)
-
-'''
-    CONSTANTS
-'''
-SCREEN_WIDTH = 500
-SCREEN_HEIGHT = 500
-SPRITE_PIXEL_SIZE = 16
-GRID_SPRITE_WIDTH = 14
-GRID_SPRITE_HEIGHT = 16
-
-# 4:5 aspect ratio
-LCD_WIDTH = 448 # 550
-LCD_HEIGHT =  560 # 728
-
-FPS = 40
-
-'''
-    OBJECTS
-'''
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-
-        img_0 = get_image(spritesheet, 28.5+1.9, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_1 = get_image(spritesheet, 29.5+2.0, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_2 = get_image(spritesheet, 28.5+1.9, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_3 = get_image(spritesheet, 29.5+2.0, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_4 = get_image(spritesheet, 28.5+1.9, 2+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_5 = get_image(spritesheet, 29.5+2.0, 2+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_6 = get_image(spritesheet, 28.5+1.9, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_7 = get_image(spritesheet, 29.5+2.0, 3+0.26, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-
-        img_8 = get_image(spritesheet, 30.5+2.1, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_9 = get_image(spritesheet, 31.5+2.15, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_10 = get_image(spritesheet, 32.5+2.2, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_11 = get_image(spritesheet, 33.5+2.25, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_12 = get_image(spritesheet, 34.5+2.3, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_13 = get_image(spritesheet, 35.5+2.35, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_14 = get_image(spritesheet, 36.5+2.4, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_15 = get_image(spritesheet, 37.5+2.45, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_16 = get_image(spritesheet, 38.5+2.5, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_17 = get_image(spritesheet, 39.5+2.55, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_18 = get_image(spritesheet, 40.5+2.6, 0, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_19 = get_image(spritesheet, 41.5+2.65, 0+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-        img_20 = get_image(spritesheet, 41.5+2.65, 1+0.13, SPRITE_PIXEL_SIZE-1, SPRITE_PIXEL_SIZE-1, True)
-
-
-        self.rightImages = [img_0, img_1]
-        self.leftImages = [img_2, img_3]
-        self.upImages = [img_4, img_5]
-        self.downImages = [img_6, img_7]
-        self.loseImages = [img_8, img_9, img_10, img_11, img_12, img_13, img_14, img_15, img_16, img_17, img_18, img_19, img_20]
-
-        self.images = self.rightImages
-        self.image = self.images[0]
-        self.rect = self.image.get_rect()
-        self.movex = 0
-        self.movey = 0
-        self.frame = 0
-
-        self.speed = 0.8
-        self.frightenedSpeed = 0.9
-
-        self.score = 0
-        self.tileNumber = 0
-        self.currentDirection = 3
-        self.lose = False
-
-    def move(self, key):
-        if gameMode == "Frightened":
-            steps = self.frightenedSpeed
-        else:
-            steps = self.speed
-        steps = 1
-        if key[pygame.K_LEFT]:
-            rect = pygame.Rect(self.rect.x - 1, self.rect.y, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
-                self.images = self.leftImages
-                self.control(-steps, 0)
-                self.currentDirection = 1
-            else:
-                self.stop()
-        elif key[pygame.K_RIGHT]:
-            rect = pygame.Rect(self.rect.x + 1, self.rect.y, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
-                self.images = self.rightImages
-                self.control(steps, 0)
-                self.currentDirection = 3
-            else:
-                self.stop()
-        elif key[pygame.K_UP]:
-            rect = pygame.Rect(self.rect.x, self.rect.y - 1, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
-                self.images = self.upImages
-                self.control(0, -steps)
-                self.currentDirection = 0
-            else:
-                self.stop()
-        elif key[pygame.K_DOWN]:
-            rect = pygame.Rect(self.rect.x, self.rect.y + 1, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
-                self.images = self.downImages
-                self.control(0, steps)
-                self.currentDirection = 2
-            else:
-                self.stop()
-        else:
-            self.stop()
-        self.tileNumber = self.rect.collidelist(grid)
-
-    def eat(self):
-        if self.rect.collidelist(dots) is not -1:
-            index = self.rect.collidelist(dots)
-            dots.pop(index)
-            self.score += 10
-            # print(self.score)
-        if self.rect.collidelist(pellets) is not -1:
-            print("Frightened")
-            global gameMode, timer
-            gameMode = "Frightened"
-            timer = pygame.time.get_ticks()
-            index = self.rect.collidelist(pellets)
-            pellets.pop(index)
-            self.score += 50
-            # print(self.score)
-
-    def checkGhostCollision(self):
-        for ghost in ghost_list:
-            # if self.rect.colliderect(ghost.rect):
-            if self.tileNumber == ghost.tileNumber:
-                self.lose = True
-                self.images = self.loseImages
-                self.image = self.images[0]
-
-    def control(self, x, y):
-        self.movex = x
-        self.movey = y
-    
-    def stop(self):
-        self.movex = 0
-        self.movey = 0
-
-    def update(self):
-        self.rect.x = self.rect.x + self.movex 
-        self.rect.y = self.rect.y + self.movey
-
-        if self.rect.x > 425:
-            self.rect.x = 0
-        elif self.rect.x < 0:
-            self.rect.x = 425
-
-class Ghost(pygame.sprite.Sprite):
-    def __init__(self, yOffset, scatterTargetRect):
-        pygame.sprite.Sprite.__init__(self)
-
-        self.rightImage = get_image(spritesheet, 28.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.leftImage = get_image(spritesheet, 30.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.upImage = get_image(spritesheet, 32.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.downImage = get_image(spritesheet, 34.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.frightenedImage = get_image(spritesheet, 36.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.image = self.rightImage
-
-        self.rect = self.image.get_rect()
-        self.movex = 0
-        self.movey = 0
-        self.targetRect = player.rect
-        self.scatterTargetRect = scatterTargetRect
-        self.movementMode = "Chase"
-
-        self.speed = 0.75
-        self.frightenedSpeed = 0.5
-
-        self.tileNumber = 0
-        self.currentDirection = 3
-
-        self.reachedInit = False
-        self.initX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-        self.initY = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
-
-    def move(self, targetRect):
-        if not self.reachedInit:
-            if abs(self.initX - self.rect.x) < 10 and abs(self.initY - self.rect.y) < 0.5:
-                self.reachedInit = True
-            self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/100)
-        else:
-            self.targetRect = targetRect
-            if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
-                self.stop()
-                dir = self.getPossibleDirections()
-                if len(dir) is 0:
-                    print(dir)
-                    self.stop()
-                elif len(dir) is 1:
-                    self.moveDirection(dir[0])
-                elif len(dir) is 2:
-                    if self.currentDirection in dir:
-                        self.moveDirection(self.currentDirection)
-                    else:
-                        if (dir[0] + self.currentDirection) % 2 is 0:
-                            self.moveDirection(dir[1])
-                        else:
-                            self.moveDirection(dir[0])
-                else:
-                    vector = self.findVector()
-                    if vector[0] == 0:
-                        if vector[1] < 0:
-                            priority = [0, 1, 3, 2]
-                            self.pickDirection(dir, priority)
-                        elif vector[1] > 0:
-                            priority = [2, 1, 3, 0]
-                            self.pickDirection(dir, priority)
-                        else:
-                            self.stop()
-                    elif vector[1] == 0:
-                        if vector[0] < 0:
-                            priority = [1, 0, 2, 3]
-                            self.pickDirection(dir, priority)
-                        elif vector[0] > 0:
-                            priority = [3, 0, 2, 1]
-                            self.pickDirection(dir, priority)
-                        else:
-                            self.stop()
-                    elif vector[0] < 0:
-                        if vector[1] < 0:
-                            if abs(vector[1]/vector[0]) < 1:
-                                priority = [1, 0, 2, 3]
-                                self.pickDirection(dir, priority)
-                            else:
-                                priority = [0, 1, 3, 2]
-                                self.pickDirection(dir, priority)
-                        else:
-                            if abs(vector[1]/vector[0]) < 1:
-                                priority = [1, 2, 0, 3]
-                                self.pickDirection(dir, priority)
-                            else:
-                                priority = [2, 1, 3, 0]
-                                self.pickDirection(dir, priority)
-                    else:
-                        if vector[1] < 0:
-                            if abs(vector[1]/vector[0]) < 1:
-                                priority = [3, 0, 2, 1]
-                                self.pickDirection(dir, priority)
-                            else:
-                                priority = [0, 3, 1, 2]
-                                self.pickDirection(dir, priority)
-                        else:
-                            if abs(vector[1]/vector[0]) < 1:
-                                priority = [3, 2, 0, 1]
-                                self.pickDirection(dir, priority)
-                            else:
-                                priority = [2, 3, 1, 0]
-                                self.pickDirection(dir, priority)
-            else:
-                self.moveDirection(self.currentDirection)
-        self.tileNumber = self.rect.collidelist(grid)
-
-    def moveRandom(self):
-        if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
-            self.stop()
-            dir = self.getPossibleDirections()
-            self.moveDirection(random.choice(dir))
-    
-    def control(self, x, y):
-        self.movex = x
-        self.movey = y
-    
-    def stop(self):
-        self.movex = 0
-        self.movey = 0
-
-    def update(self):
-        self.rect.x = self.rect.x + self.movex 
-        self.rect.y = self.rect.y + self.movey
-
-        # print(self.rect.x)
-        if self.rect.x > 435:
-            self.rect.x = 0
-        elif self.rect.x < 0:
-            self.rect.x = 420
-    
-    def findVector(self):
-        x1 = self.rect.x
-        y1 = self.rect.y
-        x2 = self.targetRect.x
-        y2 = self.targetRect.y
-
-        return [x2 - x1, y2 - y1]
-    
-    def pickDirection(self, dir, priority):
-        for i in priority:
-            if i in dir:
-                if (i + self.currentDirection) % 2 == 0 and i is not self.currentDirection and (gameMode == "Scatter" or self.movementMode == "Scatter"):
-                    continue
-                self.moveDirection(i)
-                return
-        self.stop()
-
-    def moveDirection(self, dir):
-        if gameMode == "Frightened":
-            steps = self.frightenedSpeed
-        else:
-            steps = self.speed
-        steps = 1
-        if dir is 1:
-            self.image = self.leftImage
-            self.control(-steps, 0)
-            self.currentDirection = 1
-        elif dir is 3:
-            self.image = self.rightImage
-            self.control(steps, 0)
-            self.currentDirection = 3
-        elif dir is 0:
-            self.image = self.upImage
-            self.control(0, -steps)
-            self.currentDirection = 0
-        elif dir is 2:
-            self.image = self.downImage
-            self.control(0, steps)
-            self.currentDirection = 2
-        else:
-            self.stop()
-        if gameMode == "Frightened":
-            self.image = self.frightenedImage
-        
-
-    def getPossibleDirections(self):
-        x = 0
-        y = 0
-        if self.rect.x % 16 < 8:
-            x = math.floor((self.rect.x - 8) / 16.0) + 1
-        else:
-            x = math.ceil((self.rect.x - 8) / 16.0) + 1
-        if x >= 27:
-            x = 27
-        if self.rect.y % 16 < 8:
-            y = math.floor((self.rect.y - 8) / 16.0) + 1
-        else:
-            y = math.ceil((self.rect.y - 8) / 16.0) + 1
-        
-        dir = [] # 0 = up, 1 = left, 2 = right, 3 = down
-        if grid[(x * 31) + (y - 1)].rect.collidelist(walls) is -1:
-            dir.append(0)
-        if x - 1 < 0:
-            return [1]
-        if grid[((x - 1) * 31) + y].rect.collidelist(walls) is -1:
-            dir.append(1)
-        if grid[(x * 31) + (y + 1)].rect.collidelist(walls) is -1:
-            dir.append(2)
-        if x + 1 >= 28:
-            return [3]
-        if grid[((x + 1) * 31) + y].rect.collidelist(walls) is -1:
-            dir.append(3)
-        return dir
-
-
-class Wall(object):
-    def __init__(self, x, y, width, height):
-        self.x = (x * 32)
-        self.y = (y * 32)
-        self.width = (width * 32)
-        self.height = (height * 32)
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-    def draw(self, win):
-        pygame.draw.rect(win, (0, 255, 255), self.rect, 2)
-
-class Tile(object):
-    def __init__(self, x, y, width, height):
-        self.x = (x * 32)
-        self.y = (y * 32)
-        self.width = (width * 32)
-        self.height = (height * 32)
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-    def draw(self, win):
-        pygame.draw.rect(win, (0, 255, 0), self.rect, 2)
-
-class Dot(object):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(self.x, self.y, 4.5, 4.5)
-    def draw(self, win):
-        pygame.draw.rect(win, (255, 183, 174), self.rect, 2)
-
-class Pellet(object):
-    def __init__(self, x, y):
-        self.x = (x * 32)
-        self.y = (y * 32)
-        self.rect = pygame.Rect(self.x, self.y, 16, 16)
-    def draw(self, win):
-        pygame.draw.circle(win, (255, 183, 174), (self.x, self.y), 8)
-
-class Life(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = get_image(spritesheet, 36.5, 1, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.rect = self.image.get_rect()
-
-'''
-    FUNCTIONS
-'''
-def get_image(sheet, xOffset, yOffset, width, height, transparent):
-    image = pygame.Surface((width, height)).convert_alpha()
-    scale = 2
-
-    image.blit(sheet, (0, 0), ((xOffset * width), (yOffset * height), width, height))
-    image = pygame.transform.scale(image, (width * scale, height * scale))
-
-    if transparent:
-        image.set_colorkey((0, 0, 0))
-
-    return image
-
-def getPinkGhostTarget(player):
-    x = player.rect.x
-    y = player.rect.y
-    dir = player.currentDirection
-
-    if dir == 0:
-        y -= 8 * SPRITE_PIXEL_SIZE
-    elif dir == 1:
-        x -= 8 * SPRITE_PIXEL_SIZE
-    elif dir == 2:
-        y += 8 * SPRITE_PIXEL_SIZE
-    else:
-        x += 8 * SPRITE_PIXEL_SIZE
-
-    return pygame.Rect(x, y, 16, 16)
-
-def getBlueGhostTarget(player, redGhost):
-    playerX = player.rect.x
-    playerY = player.rect.y
-    playerDir = player.currentDirection
-    ghostX = redGhost.rect.x
-    ghostY = redGhost.rect.y
-
-    if playerDir == 0:
-        playerY -= 4 * SPRITE_PIXEL_SIZE
-    elif playerDir == 1:
-        playerX -= 4 * SPRITE_PIXEL_SIZE
-    elif playerDir == 2:
-        playerY += 4 * SPRITE_PIXEL_SIZE
-    else:
-        playerX += 4 * SPRITE_PIXEL_SIZE
-
-    x = ghostX + ((playerX - ghostX) * 2)
-    y = ghostY + ((playerY - ghostY) * 2)
-
-    return pygame.Rect(x, y, 16, 16)
-
-def getOrangeGhostTarget(player, orangeGhost):
-    playerX = player.rect.x
-    playerY = player.rect.y
-
-    ghostX = orangeGhost.rect.x
-    ghostY = orangeGhost.rect.y
-
-    if math.sqrt((abs(playerX - ghostX)^2) + (abs(playerY - ghostY)^2)) > 16:
-        orangeGhost.movementMode = "Chase"
-        return player.rect
-    else:
-        orangeGhost.movementMode = "Scatter"
-        return orangeGhost.scatterTargetRect
 
 
 '''
@@ -486,37 +35,6 @@ gameMode = "Scatter"
 # Create background
 screen.fill((0, 0, 0))
 map = get_image(spritesheet, 1.02, 0, SPRITE_PIXEL_SIZE*GRID_SPRITE_WIDTH, SPRITE_PIXEL_SIZE*GRID_SPRITE_HEIGHT, False)
-
-# Create Player
-player = Player()
-player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
-player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
-player_list = pygame.sprite.Group()
-player_list.add(player)
-# steps = 1
-
-# Create Ghosts
-redGhost = Ghost(0, pygame.Rect(10.5*32, -0.5*32, 16, 16))
-redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
-
-pinkGhost = Ghost(1, pygame.Rect(2*32, -0.5*32, 16, 16))
-pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
-pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-
-blueGhost = Ghost(2, pygame.Rect(12.5*32, 25*32, 16, 16))
-blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-
-orangeGhost = Ghost(3, pygame.Rect(2*32, 25*32, 16, 16))
-orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
-orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-
-ghost_list = pygame.sprite.Group()
-ghost_list.add(redGhost)
-ghost_list.add(pinkGhost)
-ghost_list.add(blueGhost)
-ghost_list.add(orangeGhost)
 
 # Create walls
 wall1 = Wall(1.25, 1.25, 1.5, 1)
@@ -676,6 +194,36 @@ for i in range(0, 438, 16):
         tile = Tile(i/32.0, j/32.0, 0.5, 0.5)
         grid.append(tile)
 
+# Create Player
+player = Player(grid)
+player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
+player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+player_list = pygame.sprite.Group()
+player_list.add(player)
+
+# Create Ghosts
+redGhost = Ghost(0, player, pygame.Rect(10.5*32, -0.5*32, 16, 16), grid, walls)
+redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+
+pinkGhost = Ghost(1, player, pygame.Rect(2*32, -0.5*32, 16, 16), grid, walls)
+pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
+pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+blueGhost = Ghost(2, player, pygame.Rect(12.5*32, 25*32, 16, 16), grid, walls)
+blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+orangeGhost = Ghost(3, player, pygame.Rect(2*32, 25*32, 16, 16), grid, walls)
+orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
+orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+
+ghost_list = pygame.sprite.Group()
+ghost_list.add(redGhost)
+ghost_list.add(pinkGhost)
+ghost_list.add(blueGhost)
+ghost_list.add(orangeGhost)
+
 timer = pygame.time.get_ticks()
 gamePhase = 1
 
@@ -699,9 +247,13 @@ while running:
     key = pygame.key.get_pressed()
     
     if not player.lose and (len(dots) > 0 or len(pellets) > 0):
-        player.move(key)
-        player.eat()
-        player.checkGhostCollision()
+        player.move(key, walls, gameMode)
+        player.checkGhostCollision(ghost_list)
+        dots, pellets, isFrightened = player.eat(dots, pellets)
+
+        if isFrightened is True:
+            gameMode = "Frightened"
+            timer = pygame.time.get_ticks()
 
         if player.lose:
             animInterval = 0.25
@@ -736,19 +288,19 @@ while running:
                 timer = now
 
         if gameMode == "Chase":
-            redGhost.move(player.rect)
-            pinkGhost.move(getPinkGhostTarget(player))
+            redGhost.move(player.rect, gameMode)
+            pinkGhost.move(getPinkGhostTarget(player), gameMode)
             if totalDots - len(dots) >= 30:
-                blueGhost.move(getBlueGhostTarget(player, redGhost))
+                blueGhost.move(getBlueGhostTarget(player, redGhost), gameMode)
             if totalDots - len(dots) >= totalDots/3:
-                orangeGhost.move(getOrangeGhostTarget(player, orangeGhost))
+                orangeGhost.move(getOrangeGhostTarget(player, orangeGhost), gameMode)
         elif gameMode == "Scatter":
-            redGhost.move(redGhost.scatterTargetRect)
-            pinkGhost.move(pinkGhost.scatterTargetRect)
+            redGhost.move(redGhost.scatterTargetRect, gameMode)
+            pinkGhost.move(pinkGhost.scatterTargetRect, gameMode)
             if totalDots - len(dots) >= 30:
-                blueGhost.move(blueGhost.scatterTargetRect)
+                blueGhost.move(blueGhost.scatterTargetRect, gameMode)
             if totalDots - len(dots) >= totalDots/3:
-                orangeGhost.move(orangeGhost.scatterTargetRect)
+                orangeGhost.move(orangeGhost.scatterTargetRect, gameMode)
         elif gameMode == "Frightened":
             for ghost in ghost_list:
                 ghost.moveRandom()
@@ -796,20 +348,24 @@ while running:
 
                 redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
                 redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+                redGhost.image = redGhost.rightImage
                 redGhost.currentDirection = 3
 
                 pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
                 pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                pinkGhost.image = pinkGhost.rightImage
                 pinkGhost.currentDirection = 3
                 pinkGhost.reachedInit = False
 
                 blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
                 blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                blueGhost.image = blueGhost.rightImage
                 blueGhost.currentDirection = 3
                 blueGhost.reachedInit = False
 
                 orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
                 orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                orangeGhost.image = orangeGhost.rightImage
                 orangeGhost.currentDirection = 3
                 orangeGhost.reachedInit = False
 
@@ -820,12 +376,6 @@ while running:
     pinkGhost.update()
     blueGhost.update()
     orangeGhost.update()
-
-    # for tile in grid:
-    #     tile.draw(screen)
-
-    # for wall in walls:
-    #     wall.draw(screen)
 
     for dot in dots:
         dot.draw(screen)
