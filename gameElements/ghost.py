@@ -14,7 +14,8 @@ class Ghost(pygame.sprite.Sprite):
         self.leftImage = get_image(spritesheet, 30.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.upImage = get_image(spritesheet, 32.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.downImage = get_image(spritesheet, 34.5, 4+yOffset, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
-        self.frightenedImage = get_image(spritesheet, 36.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.frightenedBlueImage = get_image(spritesheet, 36.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
+        self.frightenedWhiteImage = get_image(spritesheet, 38.5, 4, SPRITE_PIXEL_SIZE, SPRITE_PIXEL_SIZE, True)
         self.image = self.rightImage
 
         self.rect = self.image.get_rect()
@@ -114,14 +115,14 @@ class Ghost(pygame.sprite.Sprite):
                 self.moveDirection(self.currentDirection)
         self.tileNumber = self.rect.collidelist(self.grid)
 
-    def moveRandom(self):
+    def moveRandom(self, frightenedTime):
         if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
             self.stop()
             dir = self.getPossibleDirections()
             newDir = random.choice(dir)
             while (newDir + self.currentDirection) % 2 == 0 and newDir != self.currentDirection:
                 newDir = random.choice(dir)
-            self.moveDirection(newDir, "Frightened")
+            self.moveDirection(newDir, frightenedTime)
     
     def control(self, x, y):
         self.movex = x
@@ -158,8 +159,8 @@ class Ghost(pygame.sprite.Sprite):
                 return
         self.stop()
 
-    def moveDirection(self, dir, gameMode=""):
-        if gameMode == "Frightened":
+    def moveDirection(self, dir, frightenedTime=-1):
+        if frightenedTime > 0:
             steps = self.frightenedSpeed
         else:
             steps = self.speed
@@ -182,8 +183,11 @@ class Ghost(pygame.sprite.Sprite):
             self.currentDirection = 2
         else:
             self.stop()
-        if gameMode == "Frightened":
-            self.image = self.frightenedImage
+        if frightenedTime != -1:
+            if frightenedTime < 4 * 1000:
+                self.image = self.frightenedBlueImage
+            else:
+                self.image = self.frightenedWhiteImage
         
 
     def getPossibleDirections(self):

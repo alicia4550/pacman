@@ -303,7 +303,7 @@ while running:
                 orangeGhost.move(orangeGhost.scatterTargetRect, gameMode)
         elif gameMode == "Frightened":
             for ghost in ghost_list:
-                ghost.moveRandom()
+                ghost.moveRandom(now - timer)
     else:
         player.stop()
         for ghost in ghost_list:
