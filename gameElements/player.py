@@ -99,7 +99,7 @@ class Player(pygame.sprite.Sprite):
             self.stop()
         self.tileNumber = self.rect.collidelist(self.grid)
 
-    def eat(self, dots, pellets):
+    def eat(self, dots, pellets, fruits):
         isFrightened = False
         if self.rect.collidelist(dots) is not -1:
             index = self.rect.collidelist(dots)
@@ -111,7 +111,12 @@ class Player(pygame.sprite.Sprite):
             pellets.pop(index)
             self.score += 50
             isFrightened = True
-        return dots, pellets, isFrightened
+        if len(fruits.sprites()) > 0 and self.rect.colliderect(fruits.sprites()[0].rect) is True:
+            print("Eat fruit")
+            fruit = fruits.sprites()[0]
+            self.score += fruit.points
+            fruit.kill()
+        return dots, pellets, fruits, isFrightened
 
     def checkGhostCollision(self, ghost_list):
         for ghost in ghost_list:

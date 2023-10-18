@@ -7,6 +7,7 @@ from constants import *
 from util import *
 
 from gameElements.dot import Dot
+from gameElements.fruit import Fruit
 from gameElements.ghost import Ghost
 from gameElements.life import Life
 from gameElements.pellet import Pellet
@@ -186,6 +187,12 @@ life_list.add(life1)
 life_list.add(life2)
 life_list.add(life3)
 
+fruit = Fruit(0, 100)
+fruit_list = pygame.sprite.Group()
+
+fruit_timer = time.time()
+canAddFruit = True
+
 animStartTime = time.time()
 
 grid = []
@@ -249,7 +256,21 @@ while running:
     if not player.lose and (len(dots) > 0 or len(pellets) > 0):
         player.move(key, walls, gameMode)
         player.checkGhostCollision(ghost_list)
-        dots, pellets, isFrightened = player.eat(dots, pellets)
+        dots, pellets, fruit_list, isFrightened = player.eat(dots, pellets, fruit_list)
+
+        if totalDots - len(dots) == 70 and canAddFruit == True:
+            print("Add fruit")
+            fruit_list.add(fruit)
+            fruit_timer = time.time()
+            canAddFruit = False
+        elif totalDots - len(dots) == 170 and canAddFruit == True:
+            print("Add fruit")
+            fruit_list.add(fruit)
+            fruit_timer = time.time()
+            canAddFruit = False
+        if len(fruit_list.sprites()) > 0 and time.time() - fruit_timer > 9:
+            fruit_list.sprites()[0].kill()
+            canAddFruit = True
 
         if isFrightened is True:
             gameMode = "Frightened"
@@ -390,6 +411,7 @@ while running:
 
     player_list.draw(screen)
     ghost_list.draw(screen)
+    fruit_list.draw(screen)
     life_list.draw(display)
 
     pygame.display.flip()
