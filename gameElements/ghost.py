@@ -138,7 +138,6 @@ class Ghost(pygame.sprite.Sprite):
                                 self.pickDirection(dir, priority, gameMode)
             else:
                 self.moveDirection(self.currentDirection)
-        self.tileNumber = self.rect.collidelist(self.grid)
 
     def moveRandom(self, frightenedTime):
         if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
@@ -148,7 +147,6 @@ class Ghost(pygame.sprite.Sprite):
             while (newDir + self.currentDirection) % 2 == 0 and newDir != self.currentDirection:
                 newDir = random.choice(dir)
             self.moveDirection(newDir, frightenedTime)
-        self.tileNumber = self.rect.collidelist(self.grid)
     
     def control(self, x, y):
         self.movex = x
@@ -166,6 +164,8 @@ class Ghost(pygame.sprite.Sprite):
             self.rect.x = 0
         elif self.rect.x < 0:
             self.rect.x = 420
+
+        self.tileNumber = self.rect.collidelist(self.grid)
     
     def findVector(self):
         x1 = self.rect.x
