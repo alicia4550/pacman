@@ -48,6 +48,9 @@ class Player(pygame.sprite.Sprite):
         self.speed = 0.8
         self.frightenedSpeed = 0.9
 
+        self.xActual = -1
+        self.yActual = -1
+
         self.score = 0
         self.tileNumber = 0
         self.currentDirection = 3
@@ -140,10 +143,19 @@ class Player(pygame.sprite.Sprite):
         self.movey = 0
 
     def update(self):
-        self.rect.x = self.rect.x + self.movex 
-        self.rect.y = self.rect.y + self.movey
+        if self.xActual == -1:
+            self.xActual = self.rect.x
+            self.yActual = self.rect.y
+
+        self.xActual += self.movex
+        self.yActual += self.movey
+
+        self.rect.x = round(self.xActual)
+        self.rect.y = round(self.yActual)
 
         if self.rect.x > 425:
             self.rect.x = 0
+            self.xActual = 0
         elif self.rect.x < 0:
             self.rect.x = 425
+            self.xActual = 425

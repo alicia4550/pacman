@@ -35,6 +35,9 @@ class Ghost(pygame.sprite.Sprite):
         self.speed = 0.75
         self.frightenedSpeed = 0.5
 
+        self.xActual = -1
+        self.yActual = -1
+
         self.tileNumber = 0
         self.currentDirection = 3
 
@@ -50,7 +53,7 @@ class Ghost(pygame.sprite.Sprite):
         if not self.reachedInit:
             if abs(self.initX - self.rect.x) < 10 and abs(self.initY - self.rect.y) < 0.5:
                 self.reachedInit = True
-            self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/100)
+            self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/10)
         else:
             if self.status == "Eaten":
                 if self.reachedHome is False:
@@ -157,13 +160,22 @@ class Ghost(pygame.sprite.Sprite):
         self.movey = 0
 
     def update(self):
-        self.rect.x = self.rect.x + self.movex 
-        self.rect.y = self.rect.y + self.movey
+        if self.xActual == -1:
+            self.xActual = self.rect.x
+            self.yActual = self.rect.y
+
+        self.xActual += self.movex
+        self.yActual += self.movey
+
+        self.rect.x = round(self.xActual)
+        self.rect.y = round(self.yActual)
 
         if self.rect.x > 435:
             self.rect.x = 0
+            self.xActual = 0
         elif self.rect.x < 0:
             self.rect.x = 420
+            self.xActual = 420
 
         self.tileNumber = self.rect.collidelist(self.grid)
     
@@ -189,7 +201,7 @@ class Ghost(pygame.sprite.Sprite):
             steps = self.frightenedSpeed
         else:
             steps = self.speed
-        steps = 1
+
         if dir is 1:
             if self.status == "Alive":
                 self.image = self.leftImage
