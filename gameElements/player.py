@@ -48,8 +48,8 @@ class Player(pygame.sprite.Sprite):
         self.speed = 0.8
         self.frightenedSpeed = 0.9
 
-        self.xActual = -1
-        self.yActual = -1
+        self.xActual = self.rect.x
+        self.yActual = self.rect.y
 
         self.score = 0
         self.tileNumber = 0
@@ -59,6 +59,14 @@ class Player(pygame.sprite.Sprite):
         self.ghostsEaten = 0
 
         self.grid = grid
+
+    def setX(self, x):
+        self.rect.x = x
+        self.xActual = x
+    
+    def setY(self, y):
+        self.rect.y = y
+        self.yActual = y
 
     def move(self, key, walls, gameMode):
         if gameMode == "Frightened":
@@ -143,10 +151,6 @@ class Player(pygame.sprite.Sprite):
         self.movey = 0
 
     def update(self):
-        if self.xActual == -1:
-            self.xActual = self.rect.x
-            self.yActual = self.rect.y
-
         self.xActual += self.movex
         self.yActual += self.movey
 

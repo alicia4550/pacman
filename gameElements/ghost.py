@@ -35,8 +35,8 @@ class Ghost(pygame.sprite.Sprite):
         self.speed = 0.75
         self.frightenedSpeed = 0.5
 
-        self.xActual = -1
-        self.yActual = -1
+        self.xActual = self.rect.x
+        self.yActual = self.rect.y
 
         self.tileNumber = 0
         self.currentDirection = 3
@@ -48,6 +48,14 @@ class Ghost(pygame.sprite.Sprite):
 
         self.grid = grid
         self.walls = walls
+
+    def setX(self, x):
+        self.rect.x = x
+        self.xActual = x
+    
+    def setY(self, y):
+        self.rect.y = y
+        self.yActual = y
 
     def move(self, targetRect, gameMode):
         if not self.reachedInit:
@@ -160,10 +168,6 @@ class Ghost(pygame.sprite.Sprite):
         self.movey = 0
 
     def update(self):
-        if self.xActual == -1:
-            self.xActual = self.rect.x
-            self.yActual = self.rect.y
-
         self.xActual += self.movex
         self.yActual += self.movey
 

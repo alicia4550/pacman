@@ -203,27 +203,27 @@ for i in range(0, 438, 16):
 
 # Create Player
 player = Player(grid)
-player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
-player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+player.setX((GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE)
+player.setY((GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE)
 player_list = pygame.sprite.Group()
 player_list.add(player)
 
 # Create Ghosts
 redGhost = Ghost(0, player, pygame.Rect(10.5*32, -0.5*32, 16, 16), grid, walls)
-redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+redGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
+redGhost.setY((GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE)
 
 pinkGhost = Ghost(1, player, pygame.Rect(2*32, -0.5*32, 16, 16), grid, walls)
-pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
-pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+pinkGhost.setX((GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE)
+pinkGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
 
 blueGhost = Ghost(2, player, pygame.Rect(12.5*32, 25*32, 16, 16), grid, walls)
-blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+blueGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
+blueGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
 
 orangeGhost = Ghost(3, player, pygame.Rect(2*32, 25*32, 16, 16), grid, walls)
-orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
-orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+orangeGhost.setX((GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE)
+orangeGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
 
 ghost_list = pygame.sprite.Group()
 ghost_list.add(redGhost)
@@ -366,31 +366,31 @@ while running:
             if index < len(player.images) - 1:
                 player.image = player.images[index+1]
             elif livesLeft > 0:
-                player.rect.x = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
-                player.rect.y = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+                player.setX((GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE)
+                player.setY((GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE)
                 player.images = player.rightImages
                 player.currentDirection = 3
                 animInterval = 0.5
 
-                redGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-                redGhost.rect.y = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+                redGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
+                redGhost.setY((GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE)
                 redGhost.image = redGhost.rightImage
                 redGhost.currentDirection = 3
 
-                pinkGhost.rect.x = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
-                pinkGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                pinkGhost.setX((GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE)
+                pinkGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
                 pinkGhost.image = pinkGhost.rightImage
                 pinkGhost.currentDirection = 3
                 pinkGhost.reachedInit = False
 
-                blueGhost.rect.x = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
-                blueGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                blueGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
+                blueGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
                 blueGhost.image = blueGhost.rightImage
                 blueGhost.currentDirection = 3
                 blueGhost.reachedInit = False
 
-                orangeGhost.rect.x = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
-                orangeGhost.rect.y = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+                orangeGhost.setX((GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE)
+                orangeGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
                 orangeGhost.image = orangeGhost.rightImage
                 orangeGhost.currentDirection = 3
                 orangeGhost.reachedInit = False
