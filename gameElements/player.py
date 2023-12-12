@@ -3,7 +3,7 @@ import pygame
 from util import *
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, grid):
+    def __init__(self, startX, startY, grid):
         pygame.sprite.Sprite.__init__(self)
 
         spritesheet = pygame.image.load('Arcade - Pac-Man - General Sprites.png').convert_alpha()
@@ -59,6 +59,21 @@ class Player(pygame.sprite.Sprite):
         self.ghostsEaten = 0
 
         self.grid = grid
+
+        self.startX = startX
+        self.startY = startY
+        self.setX(startX)
+        self.setY(startY)
+
+    def redrawLevel(self, speed, frightenedSpeed):
+        self.setX(self.startX)
+        self.setY(self.startY)
+        self.ghostsEaten = 0
+        self.currentDirection = 3
+        self.images = self.rightImages
+        self.image = self.images[0]
+        self.speed = speed
+        self.frightenedSpeed = frightenedSpeed
 
     def setX(self, x):
         self.rect.x = x

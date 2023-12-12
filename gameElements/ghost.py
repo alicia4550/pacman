@@ -5,7 +5,7 @@ import random
 from util import *
 
 class Ghost(pygame.sprite.Sprite):
-    def __init__(self, yOffset, player, scatterTargetRect, grid, walls):
+    def __init__(self, yOffset, startX, startY, player, scatterTargetRect, grid, walls):
         pygame.sprite.Sprite.__init__(self)
 
         spritesheet = pygame.image.load('Arcade - Pac-Man - General Sprites.png').convert_alpha()
@@ -48,6 +48,20 @@ class Ghost(pygame.sprite.Sprite):
 
         self.grid = grid
         self.walls = walls
+
+        self.startX = startX
+        self.startY = startY
+        self.setX(startX)
+        self.setY(startY)
+
+    def redrawLevel(self, speed, frightenedSpeed):
+        self.setX(self.startX)
+        self.setY(self.startY)
+        self.reachedHome = False
+        self.reachedInit = False
+        self.speed = speed
+        self.frightenedSpeed = frightenedSpeed
+        self.currentDirection = 3
 
     def setX(self, x):
         self.rect.x = x

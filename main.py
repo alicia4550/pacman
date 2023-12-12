@@ -14,21 +14,64 @@ from gameElements.pellet import Pellet
 from gameElements.player import Player
 from gameElements.tile import Tile
 from gameElements.wall import Wall
+from resources.levelData import LevelData
 
 pygame.init()
-font = pygame.font.Font("Retro Gaming.ttf", 26)
 
+def redrawLevel():
+    global level, levelData, dots, pellets, life_list, player, redGhost, pinkGhost, blueGhost, orangeGhost, fruit, fruit_timer, canAddFruit, animStartTime, livesLeft, frightenedTime
+    
+    levelRow = level
+    if level > 20:
+        levelRow = 20
+
+    dots.clear()
+    for i in range(22, 438, 16):
+        for j in range(22, 486, 16):
+            dot = Dot(i, j)
+            if dot.rect.collidelist(walls) is -1 and dot.rect.collidelist(noSpawns) is -1:
+                dots.append(dot)
+
+    pellets = [
+        pellet1,
+        pellet2,
+        pellet3,
+        pellet4
+    ]
+
+    life_list.add(life1)
+    life_list.add(life2)
+    life_list.add(life3)
+
+    player.redrawLevel(levelData.data["Pacman Speed"][levelRow], levelData.data["Pacman Frightened Speed"][levelRow])
+    redGhost.redrawLevel(levelData.data["Ghost Speed"][levelRow], levelData.data["Ghost Frightened Speed"][levelRow])
+    pinkGhost.redrawLevel(levelData.data["Ghost Speed"][levelRow], levelData.data["Ghost Frightened Speed"][levelRow])
+    blueGhost.redrawLevel(levelData.data["Ghost Speed"][levelRow], levelData.data["Ghost Frightened Speed"][levelRow])
+    orangeGhost.redrawLevel(levelData.data["Ghost Speed"][levelRow], levelData.data["Ghost Frightened Speed"][levelRow])
+
+    fruit = Fruit(0 + levelData.data["Bonus Xoffset"][levelRow], levelData.data["Bonus Points"][levelRow])
+    fruit_timer = time.time()
+    canAddFruit = True
+
+    animStartTime = time.time()
+
+    livesLeft = 3
+
+    frightenedTime = levelData.data["Frightened Time"][levelRow]
 
 '''
     SET UP
 '''
 display = pygame.display.set_mode([LCD_WIDTH, LCD_HEIGHT])
-
 screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 spritesheet = pygame.image.load('Arcade - Pac-Man - General Sprites.png').convert_alpha()
+font = pygame.font.Font("Retro Gaming.ttf", 26)
 
 running = True
+
+level = 0
+levelData = LevelData()
 
 clock = pygame.time.Clock()
 gameMode = "Scatter"
@@ -202,28 +245,28 @@ for i in range(0, 438, 16):
         grid.append(tile)
 
 # Create Player
-player = Player(grid)
-player.setX((GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE)
-player.setY((GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE)
+playerStartX = (GRID_SPRITE_WIDTH - 0.75) * SPRITE_PIXEL_SIZE
+playerStartY = (GRID_SPRITE_HEIGHT + 6.5) * SPRITE_PIXEL_SIZE
+player = Player(playerStartX, playerStartY, grid)
 player_list = pygame.sprite.Group()
 player_list.add(player)
 
 # Create Ghosts
-redGhost = Ghost(0, player, pygame.Rect(10.5*32, -0.5*32, 16, 16), grid, walls)
-redGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
-redGhost.setY((GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE)
+redGhostStartX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+redGhostStartY = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
+redGhost = Ghost(0, redGhostStartX, redGhostStartY, player, pygame.Rect(10.5*32, -0.5*32, 16, 16), grid, walls)
 
-pinkGhost = Ghost(1, player, pygame.Rect(2*32, -0.5*32, 16, 16), grid, walls)
-pinkGhost.setX((GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE)
-pinkGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
+pinkGhostStartX = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
+pinkGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+pinkGhost = Ghost(1, pinkGhostStartX, pinkGhostStartY, player, pygame.Rect(2*32, -0.5*32, 16, 16), grid, walls)
 
-blueGhost = Ghost(2, player, pygame.Rect(12.5*32, 25*32, 16, 16), grid, walls)
-blueGhost.setX((GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE)
-blueGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
+blueGhostStartX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
+blueGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+blueGhost = Ghost(2, blueGhostStartX, blueGhostStartY, player, pygame.Rect(12.5*32, 25*32, 16, 16), grid, walls)
 
-orangeGhost = Ghost(3, player, pygame.Rect(2*32, 25*32, 16, 16), grid, walls)
-orangeGhost.setX((GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE)
-orangeGhost.setY((GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE)
+orangeGhostStartX = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
+orangeGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
+orangeGhost = Ghost(3, orangeGhostStartX, orangeGhostStartY, player, pygame.Rect(2*32, 25*32, 16, 16), grid, walls)
 
 ghost_list = pygame.sprite.Group()
 ghost_list.add(redGhost)
@@ -233,8 +276,10 @@ ghost_list.add(orangeGhost)
 
 timer = pygame.time.get_ticks()
 gamePhase = 1
+frightenedTime = 6
 
 scoreLabel = font.render("Score", True, (255, 255, 255))
+levelLabel = font.render("Level: " + str(level + 1), True, (255, 255, 255))
 animInterval = 0.5
 livesLeft = 3
 
@@ -254,10 +299,12 @@ while running:
     key = pygame.key.get_pressed()
     
     if not player.lose and (len(dots) > 0 or len(pellets) > 0):
+        # Move player and check collisions
         player.move(key, walls, gameMode)
         player.checkGhostCollision(ghost_list)
         dots, pellets, fruit_list, isFrightened = player.eat(dots, pellets, fruit_list)
 
+        # Add fruit if any dots eatens
         if totalDots - len(dots) == 70 and canAddFruit == True:
             print("Add fruit")
             fruit_list.add(fruit)
@@ -272,12 +319,14 @@ while running:
             fruit_list.sprites()[0].kill()
             canAddFruit = True
 
+        # Change game mode to "Frightened" if player eats a pellet
         if isFrightened is True:
             gameMode = "Frightened"
             for ghost in ghost_list:
                 ghost.status = "Frightened"
             timer = pygame.time.get_ticks()
 
+        # Decrease number of lives if player collides with a ghost
         if player.lose:
             animInterval = 0.25
             if livesLeft is 3:
@@ -288,6 +337,7 @@ while running:
                 life_list.remove(life1)
             livesLeft -= 1
 
+        # Switch between game modes
         now = pygame.time.get_ticks()
         if gameMode == "Chase":
             if now - timer >= 20 * 1000 and gamePhase < 4:
@@ -305,7 +355,7 @@ while running:
                 gameMode = "Chase"
                 timer = now
         else:
-            if now - timer >= 6 * 1000:
+            if now - timer >= frightenedTime * 1000:
                 print("Chase")
                 for ghost in ghost_list:
                     if ghost.status != "Eaten":
@@ -313,6 +363,7 @@ while running:
                 gameMode = "Chase"
                 timer = now
 
+        # Move ghosts according to game modes
         if gameMode == "Chase":
             redGhost.move(player.rect, gameMode)
             pinkGhost.move(getPinkGhostTarget(player), gameMode)
@@ -331,6 +382,7 @@ while running:
             for ghost in ghost_list:
                 ghost.moveRandom(now - timer)
     else:
+        # Stop all movement if no more lives or all dots have been eaten
         player.stop()
         for ghost in ghost_list:
             ghost.stop()
@@ -345,9 +397,28 @@ while running:
             finalText_rect.center = (LCD_WIDTH/2, (LCD_HEIGHT/2) + 32)
             display.blit(finalText, finalText_rect)
 
+            # Update score
+            display.blit(scoreLabel, (LCD_WIDTH / 2, 0))
+            scoreText = font.render(str(player.score), True, (255, 255, 255))
+            scoreText_rect = scoreText.get_rect()
+            scoreText_rect.top = 0
+            scoreText_rect.right = LCD_WIDTH * 0.975
+            display.blit(scoreText, scoreText_rect)
+
+            display.blit(levelLabel, (8, 0))
+
+            pygame.display.update()
+
+            time.sleep(3)
+            level += 1
+            levelLabel = font.render("Level: " + str(level + 1), True, (255, 255, 255))
+            redrawLevel()
+
+    # Redraw screen
     screen.fill((0, 0, 0))
     screen.blit(map, (0, 0))
 
+    # Update score
     display.blit(scoreLabel, (LCD_WIDTH / 2, 0))
     scoreText = font.render(str(player.score), True, (255, 255, 255))
     scoreText_rect = scoreText.get_rect()
@@ -355,6 +426,9 @@ while running:
     scoreText_rect.right = LCD_WIDTH * 0.975
     display.blit(scoreText, scoreText_rect)
 
+    display.blit(levelLabel, (8, 0))
+
+    # Set animations
     if time.time() - animStartTime > animInterval:
         if player.lose is False:
             if player.image == player.images[0]:
@@ -397,12 +471,15 @@ while running:
 
                 player.lose = False
         animStartTime = time.time()
+
+    # Update player and ghost locations
     player.update()
     redGhost.update()
     pinkGhost.update()
     blueGhost.update()
     orangeGhost.update()
 
+    # Redraw game elements
     for dot in dots:
         dot.draw(screen)
 
@@ -414,7 +491,6 @@ while running:
     fruit_list.draw(screen)
     life_list.draw(display)
 
-    pygame.display.flip()
     pygame.display.update()
     clock.tick(FPS)
 
