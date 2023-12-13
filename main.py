@@ -29,7 +29,7 @@ def redrawLevel():
     for i in range(22, 438, 16):
         for j in range(22, 486, 16):
             dot = Dot(i, j)
-            if dot.rect.collidelist(walls) is -1 and dot.rect.collidelist(noSpawns) is -1:
+            if dot.rect.collidelist(walls) == -1 and dot.rect.collidelist(noSpawns) == -1:
                 dots.append(dot)
 
     pellets = [
@@ -200,7 +200,7 @@ dots = []
 for i in range(22, 438, 16):
     for j in range(22, 486, 16):
         dot = Dot(i, j)
-        if dot.rect.collidelist(walls) is -1 and dot.rect.collidelist(noSpawns) is -1:
+        if dot.rect.collidelist(walls) == -1 and dot.rect.collidelist(noSpawns) == -1:
             dots.append(dot)
 totalDots = len(dots)
 
@@ -254,19 +254,19 @@ player_list.add(player)
 # Create Ghosts
 redGhostStartX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
 redGhostStartY = (GRID_SPRITE_HEIGHT - 5.5) * SPRITE_PIXEL_SIZE
-redGhost = Ghost(0, redGhostStartX, redGhostStartY, player, pygame.Rect(10.5*32, -0.5*32, 16, 16), grid, walls)
+redGhost = Ghost(0, redGhostStartX, redGhostStartY, player, pygame.Rect(int(10.5*32), int(-0.5*32), 16, 16), grid, walls)
 
 pinkGhostStartX = (GRID_SPRITE_WIDTH - 3) * SPRITE_PIXEL_SIZE
 pinkGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-pinkGhost = Ghost(1, pinkGhostStartX, pinkGhostStartY, player, pygame.Rect(2*32, -0.5*32, 16, 16), grid, walls)
+pinkGhost = Ghost(1, pinkGhostStartX, pinkGhostStartY, player, pygame.Rect(int(2*32), int(-0.5*32), 16, 16), grid, walls)
 
 blueGhostStartX = (GRID_SPRITE_WIDTH - 1) * SPRITE_PIXEL_SIZE
 blueGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-blueGhost = Ghost(2, blueGhostStartX, blueGhostStartY, player, pygame.Rect(12.5*32, 25*32, 16, 16), grid, walls)
+blueGhost = Ghost(2, blueGhostStartX, blueGhostStartY, player, pygame.Rect(int(12.5*32), (25*32), 16, 16), grid, walls)
 
 orangeGhostStartX = (GRID_SPRITE_WIDTH + 1) * SPRITE_PIXEL_SIZE
 orangeGhostStartY = (GRID_SPRITE_HEIGHT - 2.5) * SPRITE_PIXEL_SIZE
-orangeGhost = Ghost(3, orangeGhostStartX, orangeGhostStartY, player, pygame.Rect(2*32, 25*32, 16, 16), grid, walls)
+orangeGhost = Ghost(3, orangeGhostStartX, orangeGhostStartY, player, pygame.Rect(int(2*32), int(25*32), 16, 16), grid, walls)
 
 ghost_list = pygame.sprite.Group()
 ghost_list.add(redGhost)
@@ -320,7 +320,7 @@ while running:
             canAddFruit = True
 
         # Change game mode to "Frightened" if player eats a pellet
-        if isFrightened is True:
+        if isFrightened == True:
             gameMode = "Frightened"
             for ghost in ghost_list:
                 ghost.status = "Frightened"
@@ -329,11 +329,11 @@ while running:
         # Decrease number of lives if player collides with a ghost
         if player.lose:
             animInterval = 0.25
-            if livesLeft is 3:
+            if livesLeft == 3:
                 life_list.remove(life3)
-            elif livesLeft is 2:
+            elif livesLeft == 2:
                 life_list.remove(life2)
-            elif livesLeft is 1:
+            elif livesLeft == 1:
                 life_list.remove(life1)
             livesLeft -= 1
 
@@ -419,18 +419,18 @@ while running:
     screen.blit(map, (0, 0))
 
     # Update score
-    display.blit(scoreLabel, (LCD_WIDTH / 2, 0))
+    display.blit(scoreLabel, (int(LCD_WIDTH / 2), 0))
     scoreText = font.render(str(player.score), True, (255, 255, 255))
     scoreText_rect = scoreText.get_rect()
     scoreText_rect.top = 0
-    scoreText_rect.right = LCD_WIDTH * 0.975
+    scoreText_rect.right = int(LCD_WIDTH * 0.975)
     display.blit(scoreText, scoreText_rect)
 
     display.blit(levelLabel, (8, 0))
 
     # Set animations
     if time.time() - animStartTime > animInterval:
-        if player.lose is False:
+        if player.lose == False:
             if player.image == player.images[0]:
                 player.image = player.images[1]
             else:

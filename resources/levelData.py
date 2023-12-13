@@ -12,14 +12,6 @@ class LevelData():
         # Read the values of the file in the dataframe
         self.data = pd.DataFrame(excel_data)
         # Print the content
-        print("The content of the file is:\n", self.data)
-
-        # print(data.iloc[0].iloc[0])
-        # print(data.Level[0])
+        # print("The content of the file is:\n", self.data)
 
 LevelData()
-
-# level = 0
-# levelData = LevelData()
-
-# fruit = Fruit(0 + levelData.data["Bonus Xoffset"][level], 100)
