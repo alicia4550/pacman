@@ -65,6 +65,15 @@ class Player(pygame.sprite.Sprite):
         self.setX(startX)
         self.setY(startY)
 
+        self.moveSound = pygame.mixer.Sound("sounds/siren_1.wav")
+        self.eatDotSound = pygame.mixer.Sound("sounds/munch.wav")
+        self.eatPelletSound = pygame.mixer.Sound("sounds/power_pellet.wav")
+        self.deathSound = pygame.mixer.Sound("sounds/death_1.wav")
+        self.eatFruitSound = pygame.mixer.Sound("sounds/eat_fruit.wav")
+        self.eatGhostSound = pygame.mixer.Sound("sounds/eat_ghost.wav")
+        self.frightenedSound = pygame.mixer.Sound("sounds/intermission.wav")
+
+
     def redrawLevel(self, speed, frightenedSpeed):
         self.setX(self.startX)
         self.setY(self.startY)
@@ -128,16 +137,19 @@ class Player(pygame.sprite.Sprite):
     def eat(self, dots, pellets, fruits):
         isFrightened = False
         if self.rect.collidelist(dots) is not -1:
+            pygame.mixer.Channel(1).play(self.eatDotSound)
             index = self.rect.collidelist(dots)
             dots.pop(index)
             self.score += 10
         if self.rect.collidelist(pellets) is not -1:
+            pygame.mixer.Channel(2).play(self.eatPelletSound)
             print("Frightened")
             index = self.rect.collidelist(pellets)
             pellets.pop(index)
             self.score += 50
             isFrightened = True
         if len(fruits.sprites()) > 0 and self.rect.colliderect(fruits.sprites()[0].rect) is True:
+            pygame.mixer.Channel(3).play(self.eatFruitSound)
             print("Eat fruit")
             fruit = fruits.sprites()[0]
             self.score += fruit.points
@@ -148,10 +160,12 @@ class Player(pygame.sprite.Sprite):
         for ghost in ghost_list:
             if self.tileNumber == ghost.tileNumber:
                 if ghost.status == "Alive":
+                    pygame.mixer.Channel(4).play(self.deathSound)
                     self.lose = True
                     self.images = self.loseImages
                     self.image = self.images[0]
                 elif ghost.status == "Frightened":
+                    pygame.mixer.Channel(5).play(self.eatGhostSound)
                     print("Eaten")
                     self.ghostsEaten += 1
                     ghost.status = "Eaten"
@@ -166,6 +180,9 @@ class Player(pygame.sprite.Sprite):
         self.movey = 0
 
     def update(self):
+        if pygame.mixer.Channel(0).get_busy() == False:
+            pygame.mixer.Channel(0).play(self.moveSound)
+
         self.xActual += self.movex
         self.yActual += self.movey
 
