@@ -20,9 +20,8 @@ def isValidReading(values):
 	if all(v == 1023 for v in values):
 		return False
 	return True
-
-# Main program loop.
-while True:
+	
+def getDirection():
 	# Read all the ADC channel values in a list.
 	values = [0]*8
 	for i in range(8):
@@ -35,16 +34,19 @@ while True:
 		
 		if x < 300:
 			print("Left")
+			return "LEFT"
 		elif x > 700:
 			print("Right")
-		elif y < 90:
+			return "RIGHT"
+		elif y < 300:
 			print("Down")
-		elif y > 300:
+			return "DOWN"
+		elif y > 700:
 			print("Up")
+			return "UP"
 		else:
 			print("Not moving")
+			return "NA"
 	else:
-		print("Not valid reading - check wiring")
-	
-	# Pause for half a second.
-	time.sleep(0.5)
+		print("Not valid reading - check connections")
+		return "NA"

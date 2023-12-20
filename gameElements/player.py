@@ -1,6 +1,7 @@
 import pygame
 
 from util import *
+from joystick import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, startX, startY, grid):
@@ -89,33 +90,33 @@ class Player(pygame.sprite.Sprite):
         else:
             steps = self.speed
         steps = 1
-        if key[pygame.K_LEFT]:
+        if key[pygame.K_LEFT] or getDirection() == "LEFT":
             rect = pygame.Rect(self.rect.x - 1, self.rect.y, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
+            if rect.collidelist(walls) == -1:
                 self.images = self.leftImages
                 self.control(-steps, 0)
                 self.currentDirection = 1
             else:
                 self.stop()
-        elif key[pygame.K_RIGHT]:
+        elif key[pygame.K_RIGHT] or getDirection() == "RIGHT":
             rect = pygame.Rect(self.rect.x + 1, self.rect.y, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
+            if rect.collidelist(walls) == -1:
                 self.images = self.rightImages
                 self.control(steps, 0)
                 self.currentDirection = 3
             else:
                 self.stop()
-        elif key[pygame.K_UP]:
+        elif key[pygame.K_UP] or getDirection() == "UP":
             rect = pygame.Rect(self.rect.x, self.rect.y - 1, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
+            if rect.collidelist(walls) == -1:
                 self.images = self.upImages
                 self.control(0, -steps)
                 self.currentDirection = 0
             else:
                 self.stop()
-        elif key[pygame.K_DOWN]:
+        elif key[pygame.K_DOWN] or getDirection() == "DOWN":
             rect = pygame.Rect(self.rect.x, self.rect.y + 1, self.rect.width, self.rect.height)
-            if rect.collidelist(walls) is -1:
+            if rect.collidelist(walls) == -1:
                 self.images = self.downImages
                 self.control(0, steps)
                 self.currentDirection = 2
@@ -127,17 +128,17 @@ class Player(pygame.sprite.Sprite):
 
     def eat(self, dots, pellets, fruits):
         isFrightened = False
-        if self.rect.collidelist(dots) is not -1:
+        if self.rect.collidelist(dots) != -1:
             index = self.rect.collidelist(dots)
             dots.pop(index)
             self.score += 10
-        if self.rect.collidelist(pellets) is not -1:
+        if self.rect.collidelist(pellets) != -1:
             print("Frightened")
             index = self.rect.collidelist(pellets)
             pellets.pop(index)
             self.score += 50
             isFrightened = True
-        if len(fruits.sprites()) > 0 and self.rect.colliderect(fruits.sprites()[0].rect) is True:
+        if len(fruits.sprites()) > 0 and self.rect.colliderect(fruits.sprites()[0].rect) == True:
             print("Eat fruit")
             fruit = fruits.sprites()[0]
             self.score += fruit.points

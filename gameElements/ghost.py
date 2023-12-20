@@ -78,7 +78,7 @@ class Ghost(pygame.sprite.Sprite):
             self.control((self.initX - self.rect.x)/10, (self.initY - self.rect.y)/10)
         else:
             if self.status == "Eaten":
-                if self.reachedHome is False:
+                if self.reachedHome == False:
                     self.targetRect = pygame.Rect(self.initX, self.initY, 16, 16)
                     if abs(self.initX - self.rect.x) < 10 and abs(self.initY - self.rect.y) < 0.5:
                         self.reachedHome = True
@@ -98,16 +98,16 @@ class Ghost(pygame.sprite.Sprite):
             if (self.rect.x - 8) % 16 == 0 and (self.rect.y - 8) % 16 == 0:
                 self.stop()
                 dir = self.getPossibleDirections()
-                if len(dir) is 0:
+                if len(dir) == 0:
                     print(dir)
                     self.stop()
-                elif len(dir) is 1:
+                elif len(dir) == 1:
                     self.moveDirection(dir[0])
-                elif len(dir) is 2:
+                elif len(dir) == 2:
                     if self.currentDirection in dir:
                         self.moveDirection(self.currentDirection)
                     else:
-                        if (dir[0] + self.currentDirection) % 2 is 0:
+                        if (dir[0] + self.currentDirection) % 2 == 0:
                             self.moveDirection(dir[1])
                         else:
                             self.moveDirection(dir[0])
@@ -208,7 +208,7 @@ class Ghost(pygame.sprite.Sprite):
     def pickDirection(self, dir, priority, gameMode):
         for i in priority:
             if i in dir:
-                if (i + self.currentDirection) % 2 == 0 and i is not self.currentDirection and (gameMode == "Scatter" or self.movementMode == "Scatter"):
+                if (i + self.currentDirection) % 2 == 0 and i != self.currentDirection and (gameMode == "Scatter" or self.movementMode == "Scatter"):
                     continue
                 self.moveDirection(i)
                 return
@@ -220,7 +220,7 @@ class Ghost(pygame.sprite.Sprite):
         else:
             steps = self.speed
 
-        if dir is 1:
+        if dir == 1:
             if self.status == "Alive":
                 self.image = self.leftImage
             elif self.status == "Frightened":
@@ -232,7 +232,7 @@ class Ghost(pygame.sprite.Sprite):
                 self.image = self.eyesLeftImage
             self.control(-steps, 0)
             self.currentDirection = 1
-        elif dir is 3:
+        elif dir == 3:
             if self.status == "Alive":
                 self.image = self.rightImage
             elif self.status == "Frightened":
@@ -244,7 +244,7 @@ class Ghost(pygame.sprite.Sprite):
                 self.image = self.eyesRightImage
             self.control(steps, 0)
             self.currentDirection = 3
-        elif dir is 0:
+        elif dir == 0:
             if self.status == "Alive":
                 self.image = self.upImage
             elif self.status == "Frightened":
@@ -256,7 +256,7 @@ class Ghost(pygame.sprite.Sprite):
                 self.image = self.eyesUpImage
             self.control(0, -steps)
             self.currentDirection = 0
-        elif dir is 2:
+        elif dir == 2:
             if self.status == "Alive":
                 self.image = self.downImage
             elif self.status == "Frightened":
@@ -287,16 +287,16 @@ class Ghost(pygame.sprite.Sprite):
             y = math.ceil((self.rect.y - 8) / 16.0) + 1
         
         dir = [] # 0 = up, 1 = left, 2 = right, 3 = down
-        if self.grid[(x * 31) + (y - 1)].rect.collidelist(self.walls) is -1:
+        if self.grid[(x * 31) + (y - 1)].rect.collidelist(self.walls) == -1:
             dir.append(0)
         if x - 1 < 0:
             return [1]
-        if self.grid[((x - 1) * 31) + y].rect.collidelist(self.walls) is -1:
+        if self.grid[((x - 1) * 31) + y].rect.collidelist(self.walls) == -1:
             dir.append(1)
-        if self.grid[(x * 31) + (y + 1)].rect.collidelist(self.walls) is -1:
+        if self.grid[(x * 31) + (y + 1)].rect.collidelist(self.walls) == -1:
             dir.append(2)
         if x + 1 >= 28:
             return [3]
-        if self.grid[((x + 1) * 31) + y].rect.collidelist(self.walls) is -1:
+        if self.grid[((x + 1) * 31) + y].rect.collidelist(self.walls) == -1:
             dir.append(3)
         return dir
